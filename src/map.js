@@ -38,7 +38,13 @@ function MapPlaceholder() {
   let mybounds = [[45.48965204000928,-122.66239643096925],[45.50168487047437,-122.63664722442628]];
   export function MapWithPlaceholder() {
     var verifyAddress = async () => {
+      document.getElementById('invalid-email').style.visibility = 'hidden';
       document.getElementById('success-msg').style.visibility = 'hidden';
+      let email = document.getElementById('email-conf').value;
+      if (email === null || -1 === email.search(/@/)) {
+        document.getElementById('invalid-email').style.visibility = 'visible';
+        return;
+      }
       let addr = document.getElementById('addr-value').value;
       let addrregex = /^([0-9]+)\s+(?:(?:SE)|(?:Southeast))\s+(.*)/i;
       let parsedAddress = addr.match(addrregex);
@@ -85,12 +91,19 @@ function MapPlaceholder() {
       <form id="address-form">
           <label htmlFor="addr-value">Street Address&nbsp;&nbsp;&nbsp;</label>
           <input id="addr-value" type="text" name="streetAddress"></input>
+          <br></br>          
+          <label htmlFor="email-conf">Email Address&nbsp;&nbsp;&nbsp;</label>
+          <input id="email-conf" type="text" name="emailAddress"></input>
           <div id="address-container"></div>
           <button id="verify-address" type="button" onClick={verifyAddress}>Verify</button>
       </form>
       <div id="address-not-found">
         <p>Sorry, I couldn't find that address in Brooklyn neighborhood. Please try again.</p>
       </div>
+      <div id="invalid-email">
+        <p>Invalid email address.</p>
+      </div>
+
 
       </div>
     )

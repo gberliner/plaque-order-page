@@ -44,3 +44,9 @@ code {
   text-align: center;
   visibility: hidden;
 }
+
+#invalid-email {
+  color: red;
+  text-align: center;
+  visibility: hidden;
+}
