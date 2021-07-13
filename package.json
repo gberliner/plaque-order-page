@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@derhuerst/query-overpass": "^2.0.0",
     "@react-leaflet/core": "1.0.2",
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^11.2.7",
@@ -11,7 +12,10 @@
     "react": "^17.0.1",
     "react-dom": "^17.0.2",
     "react-leaflet": "3.1.0",
+    "react-native-square-in-app-payments": "^1.5.0",
     "react-scripts": "4.0.3",
+    "react-square-payment-form": "^0.7.2",
+    "square": "^12.0.0",
     "web-vitals": "^1.1.2"
   },
   "scripts": {
@@ -37,5 +41,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "dotenv": "^8.2.0"
   }
 }

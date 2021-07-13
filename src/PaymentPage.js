@@ -5,8 +5,13 @@ import { SquarePaymentForm,
     CreditCardCVVInput,
     CreditCardSubmitButton
  } from 'react-square-payment-form'
+import React from 'react'
 import 'react-square-payment-form/lib/default.css'
-
+if (process.env !== "production") {
+    var dotenv = require ('dotenv');
+    dotenv.config();
+    console.log()
+}
 export class PaymentPage extends React.Component {
 
     constructor(props) {
@@ -23,7 +28,9 @@ export class PaymentPage extends React.Component {
       }
   
       this.setState({ errorMessages: [] })
-      alert("nonce created: " + nonce + ", buyerVerificationToken: " + buyerVerificationToken)
+      //alert("nonce created: " + nonce + ", buyerVerificationToken: " + buyerVerificationToken)
+      document.getElementById('success-msg').style.visibility = 'visible';
+      document.getElementById('payment-form').style.visibility = 'hidden';
     }
   
     createVerificationDetails() {
@@ -46,43 +53,43 @@ export class PaymentPage extends React.Component {
   
     render() {
       return (
-        <div>
-          <h1>Payment Page</h1>
+        <div id="payment-form">
+          <h1>Payment Details (current cost: $30)</h1>
   
           <SquarePaymentForm
             sandbox={true}
-            applicationId={SANDBOX_APPLICATION_ID}
-            locationId={SANDBOX_LOCATION_ID}
+            applicationId={process.env.REACT_APP_SANDBOX_APPLICATION_ID}
+            locationId={process.env.REACT_APP_SANDBOX_LOCATION_ID}
             cardNonceResponseReceived={this.cardNonceResponseReceived}
             createVerificationDetails={this.createVerificationDetails}
           >
 
-  <fieldset className="sq-fieldset">
-    <CreditCardNumberInput />
-    <div className="sq-form-third">
-      <CreditCardExpirationDateInput />
-    </div>
+            <fieldset className="sq-fieldset">
+            <CreditCardNumberInput />
+            <div className="sq-form-third">
+            <CreditCardExpirationDateInput />
+            </div>
 
-    <div className="sq-form-third">
-      <CreditCardPostalCodeInput />
-    </div>
+            <div className="sq-form-third">
+            <CreditCardPostalCodeInput />
+            </div>
 
-    <div className="sq-form-third">
-      <CreditCardCVVInput />
-    </div>
-  </fieldset>
+            <div className="sq-form-third">
+            <CreditCardCVVInput />
+            </div>
+        </fieldset>
 
-  <CreditCardSubmitButton>
-      Pay $1.00
-  </CreditCardSubmitButton>
-          </SquarePaymentForm>
+        <CreditCardSubmitButton>
+          Pay $30.00
+        </CreditCardSubmitButton>
+      </SquarePaymentForm>
   
           <div className="sq-error-message">
             {this.state.errorMessages.map(errorMessage =>
               <li key={`sq-error-${errorMessage}`}>{errorMessage}</li>
             )}
           </div>
-  
+          
         </div>
       )
     }

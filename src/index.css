@@ -11,3 +11,36 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+#payment-form {
+  max-width: 550px;
+  min-width: 300px;
+  margin: 150px auto;
+  visibility: hidden;
+}
+#address-container {
+  max-width: 550px;
+  min-width: 300px;
+  margin: 150px auto;
+}
+
+#plaque-request-header {
+  text-align: center;
+}
+
+#address-form {
+  max-height: 100px;
+  text-align: center;
+}
+
+#address-not-found {
+  color: red;
+  text-align: center;
+  visibility: hidden;
+}
+
+#success-msg {
+  color: green;
+  text-align: center;
+  visibility: hidden;
+}
