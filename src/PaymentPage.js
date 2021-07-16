@@ -7,7 +7,7 @@ import { SquarePaymentForm,
  } from 'react-square-payment-form'
 import React from 'react'
 import 'react-square-payment-form/lib/default.css'
-if (process.env !== "production") {
+if (process.env.NODE_ENV !== "production") {
     var dotenv = require ('dotenv');
     dotenv.config();
     console.log()
@@ -29,8 +29,19 @@ export class PaymentPage extends React.Component {
   
       this.setState({ errorMessages: [] })
       //alert("nonce created: " + nonce + ", buyerVerificationToken: " + buyerVerificationToken)
-      document.getElementById('success-msg').style.visibility = 'visible';
-      document.getElementById('payment-form').style.visibility = 'hidden';
+      let payload = {
+        nonce: nonce,
+        token: buyerVerificationToken
+      }
+      fetch('/api/payment-process', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      }).then(res => {
+        document.getElementById('success-msg').style.visibility = 'visible';
+        document.getElementById('payment-form').style.visibility = 'hidden';
+      }).catch(error => {
+        console.error(error.message);
+      })
     }
   
     createVerificationDetails() {
@@ -57,7 +68,7 @@ export class PaymentPage extends React.Component {
           <h1>Payment Details (current cost: $30)</h1>
   
           <SquarePaymentForm
-            sandbox={true}
+            sandbox={process.env.NODE_ENV !== "production"?true:false}
             applicationId={process.env.REACT_APP_SANDBOX_APPLICATION_ID}
             locationId={process.env.REACT_APP_SANDBOX_LOCATION_ID}
             cardNonceResponseReceived={this.cardNonceResponseReceived}
