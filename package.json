@@ -10,8 +10,13 @@
     "@testing-library/react": "^11.2.7",
     "@testing-library/user-event": "^12.8.3",
     "@types/express": "^4.17.13",
+    "@types/jest": "^26.0.24",
+    "@types/leaflet": "^1.7.4",
+    "@types/node": "^16.3.1",
     "@types/node-fetch": "^2.5.11",
     "@types/pg": "^8.6.1",
+    "@types/react": "^17.0.14",
+    "@types/react-dom": "^17.0.9",
     "@types/square-connect": "^4.20201028.1",
     "concurrently": "^6.2.0",
     "express": "^4.17.1",
@@ -26,13 +31,16 @@
     "react-scripts": "4.0.3",
     "react-square-payment-form": "^0.7.2",
     "square": "^12.0.0",
+    "type": "^1.2.0",
+    "typescript": "^4.3.5",
     "web-vitals": "^1.1.2"
   },
   "scripts": {
     "start": "concurrently \"node server.js\" \"react-scripts start\"",
-    "build": "react-scripts build",
+    "build": "react-scripts build && npm run build-api",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "build-api": "tsc -p tsconfig-api.json"
   },
   "eslintConfig": {
     "extends": [
