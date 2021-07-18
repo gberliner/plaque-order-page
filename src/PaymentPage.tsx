@@ -1,11 +1,14 @@
+import Square from 'square'
 import { SquarePaymentForm,
     CreditCardNumberInput,
     CreditCardExpirationDateInput,
     CreditCardPostalCodeInput,
     CreditCardCVVInput,
-    CreditCardSubmitButton
+    CreditCardSubmitButton,
+    
  } from 'react-square-payment-form'
-import React from 'react'
+import {SqVerificationDetails} from 'react-square-payment-form/lib/components/models'
+ import React from 'react'
 import 'react-square-payment-form/lib/default.css'
 import { SqCardData, SqContact, SqError, SqShippingOption } from 'react-square-payment-form/lib/components/models';
 if (process.env.NODE_ENV !== "production") {
@@ -16,12 +19,12 @@ if (process.env.NODE_ENV !== "production") {
 
 async function getCurrentPrice() {
  
-  let res = await fetch("/plaqueprice");
+  let res = await fetch("/check-price");
   let results = await res.json();
   return results["price"];
 }
 type PaymentPageState = {
-  price: Number;
+  price: number;
   errorMessages: String[] 
 }
 export class PaymentPage extends React.Component<{},PaymentPageState> {
@@ -53,7 +56,7 @@ export class PaymentPage extends React.Component<{},PaymentPageState> {
       }
       let email = (document.getElementById('email-conf') as HTMLInputElement).value;
       let addr = (document.getElementById('addr-value') as HTMLInputElement).value;
-      fetch('/api/payment-process', {
+      fetch('/api/process-payment', {
         method: 'POST',
         body: JSON.stringify(payload)
       }).then(res => {
@@ -71,25 +74,31 @@ export class PaymentPage extends React.Component<{},PaymentPageState> {
     }
   
     createVerificationDetails() {
-      return {
-        amount: '100.00',
-        currencyCode: "USD",
-        intent: "CHARGE",
-        billingContact: {
-          familyName: "Smith",
-          givenName: "John",
-          email: "jsmith@example.com",
-          country: "GB",
-          city: "London",
-          addressLines: ["1235 Emperor's Gate"],
-          postalCode: "SW7 4JA",
-          phone: "020 7946 0532"
-        }
-      }
+      let email = (document.getElementById('email-conf') as HTMLInputElement).value;
+      let firstName = (document.getElementById('buyerName') as HTMLInputElement).value;
+      let lastName = (document.getElementById('buyerSurname') as HTMLInputElement).value;
+      let city = (document.getElementById('city') as HTMLInputElement).value;
+      let state = (document.getElementById('state') as HTMLInputElement).value;
+      let address = (document.getElementById('addr-value') as HTMLInputElement).value;
+      let zipcode = (document.getElementById('zipcode') as HTMLInputElement).value
+      let phone = (document.getElementById('phone') as HTMLInputElement).value
+      let vDetails: SqVerificationDetails
+      vDetails.billingContact.addressLines = [address]
+      vDetails.billingContact.city = city
+      vDetails.billingContact.familyName = lastName
+      vDetails.billingContact.givenName = firstName
+      vDetails.billingContact.region = state;
+      vDetails.billingContact.country = 'US'
+      vDetails.billingContact.postalCode = zipcode
+      vDetails.billingContact.phone = phone
+      vDetails.intent = "CHARGE"
+      vDetails.currencyCode = "USD"
+      vDetails.amount = (this.state.price/100).toLocaleString()
+      return(vDetails)
     }
 
     componentDidMount() {
-      fetch('/checkprice').then(res => {
+      fetch('/check-price').then(res => {
         res.json().then(pricedata =>{
           this.setState(
             {
