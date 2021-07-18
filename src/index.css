@@ -50,3 +50,9 @@ code {
   text-align: center;
   visibility: hidden;
 }
+
+#overpass-error {
+  color: red;
+  text-align: center;
+  visibility: hidden;
+}
