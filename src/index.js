@@ -8,15 +8,6 @@ import {MapWithPlaceholder} from './map'
 import 'react-square-payment-form/lib/default.css'
 ReactDOM.render(
   <React.StrictMode>
-    <MapWithPlaceholder />
-    <div id="success-msg">
-            <p>Congratulations! We have received your payment, and 
-              will order your historic plaque made as soon as 
-              sufficient orders from your neighbors also come in 
-              (we get a discount making them in groups of three 
-              or more)</p> 
-    </div>
-    <PaymentPage />
     <App />
   </React.StrictMode>,
   document.getElementById('root')

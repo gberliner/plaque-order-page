@@ -54,12 +54,10 @@ export class PaymentPage extends React.Component<{},PaymentPageState> {
   
       this.setState({ errorMessages: [] })
       //alert("nonce created: " + nonce + ", buyerVerificationToken: " + buyerVerificationToken)
-      let payload = {
-        nonce: nonce,
-        token: buyerVerificationToken
-      }
+      
       let email = (document.getElementById('email-conf') as HTMLInputElement).value;
-      let addr = (document.getElementById('addr-value') as HTMLInputElement).value;
+      let address = (document.getElementById('addr-value') as HTMLInputElement).value;
+      let payload = {email,address,nonce,buyerVerificationToken}
       fetch('/api/process-payment', {
         method: 'POST',
         body: JSON.stringify(payload)
@@ -86,18 +84,23 @@ export class PaymentPage extends React.Component<{},PaymentPageState> {
       let address = (document.getElementById('billing-street-address') as HTMLInputElement).value;
       let zipcode = (document.getElementById('zipcode') as HTMLInputElement).value
       let phone = (document.getElementById('phone') as HTMLInputElement).value
-      let vDetails: SqVerificationDetails
-      vDetails.billingContact.addressLines = [address]
-      vDetails.billingContact.city = city
-      vDetails.billingContact.familyName = lastName
-      vDetails.billingContact.givenName = firstName
-      vDetails.billingContact.region = state;
-      vDetails.billingContact.country = 'US'
-      vDetails.billingContact.postalCode = zipcode
-      vDetails.billingContact.phone = phone
-      vDetails.intent = "CHARGE"
-      vDetails.currencyCode = "USD"
-      vDetails.amount = (this.state.price/100).toLocaleString()
+      let vDetails: SqVerificationDetails = {
+        billingContact: {
+          email: email,
+          addressLines: [address],
+          city: city,
+          familyName: lastName,
+          givenName: firstName,
+          region: state,
+          country: 'US',
+          postalCode: zipcode,
+          phone: phone
+        },
+        intent: "CHARGE",
+        currencyCode: "USD",
+        amount: (this.state.price/100).toLocaleString()
+      }
+
       return(vDetails)
     }
 
@@ -133,7 +136,7 @@ export class PaymentPage extends React.Component<{},PaymentPageState> {
             cardNonceResponseReceived={this.cardNonceResponseReceived}
             createVerificationDetails={this.createVerificationDetails}
             formId="sqPaymentForm"
-            apiWrapper={SquarePaymentForm.defaultProps.apiWrapper}
+            apiWrapper={SquarePaymentForm?.defaultProps?.apiWrapper ?? ""}
           >
           <h1>Payment Details (current cost: {this.state.price})</h1>
             
