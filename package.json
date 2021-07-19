@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "proxy": "http://localhost:8080",
+  "type": "module",
   "dependencies": {
     "@derhuerst/query-overpass": "^2.0.0",
     "@fontsource/roboto": "^4.5.0",
@@ -37,6 +38,7 @@
     "react-scripts": "4.0.3",
     "react-square-payment-form": "^0.7.2",
     "square": "^12.0.0",
+    "square-connect": "^6.20201216.0",
     "type": "^1.2.0",
     "typescript": "^4.3.5",
     "web-vitals": "^1.1.2"
@@ -44,7 +46,7 @@
   "scripts": {
     "start": "concurrently \"node server.js\" \"react-scripts start\"",
     "start-frontend": "react-scripts start",
-    "start-backend": "node server.js",
+    "start-backend": "node --es-module-specifier-resolution=node server.js",
     "build": "react-scripts build && npm run build-api",
     "test": "react-scripts test",
     "eject": "react-scripts eject",

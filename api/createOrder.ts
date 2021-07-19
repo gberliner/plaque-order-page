@@ -2,7 +2,7 @@ import Square, {CatalogApi,OrdersApi} from 'square';
 import {Request, Response, NextFunction, RequestHandler} from 'express';
 import pg from 'pg';
 import {ExpressHandler} from '../interfaces/handlers'
-import nanoid from 'nanoid';
+import {nanoid} from 'nanoid';
 //at present, there is only one catalog item:
 //{"objects":[{"type":"ITEM","id":"TVDFRE4NN4LQEYVIUFAZ3L4Y","updated_at":"2021-07-14T22:33:28.797Z","version":1626302008797,"is_deleted":false,"present_at_all_locations":true,"image_id":"NIUGWP325MGF25ADAKBKO7Y7","item_data":{"name":"standard plaque","description":"Brooklyn neighborhood historic plaque, standard size and design ","visibility":"PRIVATE","variations":[{"type":"ITEM_VARIATION","id":"Y3IROCVXXXKS4G6RNFKKFKZV","updated_at":"2021-07-14T22:33:28.797Z","version":1626302008797,"is_deleted":false,"present_at_all_locations":true,"item_variation_data":{"item_id":"TVDFRE4NN4LQEYVIUFAZ3L4Y","name":"Regular","sku":"0000100","ordinal":1,"pricing_type":"FIXED_PRICING","price_money":{"amount":3000,"currency":"USD"},"stockable":true}}],"product_type":"REGULAR","skip_modifier_screen":true,"ecom_visibility":"UNINDEXED"}}]}
 type Req = {
@@ -67,7 +67,7 @@ export default function createPlaqueOrder(req:Request, res:Response, next:NextFu
                 try {
                     const {result, ...httpResponse} = await ordersApi.createOrder(body)
                     const {statusCode, ...rest} = httpResponse;
-                    body.idempotencyKey = nanoid.nanoid();
+                    body.idempotencyKey = nanoid();
                     //body.order.id
                     let sqNewOrderId: string|undefined;
                     if (statusCode !== 200) {
@@ -153,7 +153,7 @@ export  function createPlaqueOrderrr(req:Request, res:Response): ExpressHandler<
                 try {
                     const {result, ...httpResponse} = await ordersApi.createOrder(body)
                     const {statusCode, headers} = httpResponse;
-                    body.idempotencyKey = nanoid.nanoid();
+                    body.idempotencyKey = nanoid();
                     //body.order.id
                     let newOrderId: string|undefined;
                     if (statusCode !== 200) {

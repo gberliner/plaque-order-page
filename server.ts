@@ -4,7 +4,7 @@ import processPayment from './api/paymentRcvd.js';
 import {createPlaqueOrder} from './api/createOrder';
     import {checkPrice} from './api/checkPrice';
 const app = express();
-app.use(express.static(path.join(__dirname, 'build')));
+app.use(express.static(path.join(import.meta.url, 'build')));
 
 app.get('/ping', function (req, res) {
  return res.send('pong');

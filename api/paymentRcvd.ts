@@ -3,7 +3,7 @@ import { Request,Response, RequestHandler }  from 'express'
 import fetch from 'node-fetch';
 import {ExpressHandler} from '../interfaces/handlers'
 import { Payment,CreatePaymentRequest, PaymentsApi, } from 'square-connect';
-import nanoid from 'nanoid';
+import {nanoid} from 'nanoid';
 //type Req = { email: string; housenumber: string; streetnumber: string; orderid: string };
 export default function processPayment(req: Request,res: Response): RequestHandler<Request,Response> {
     try {
@@ -16,7 +16,7 @@ export default function processPayment(req: Request,res: Response): RequestHandl
         let pymtreq = new CreatePaymentRequest();
         JSON.parse(req.body).orderid;
         pymtreq.order_id = req.body.orderid;
-        pymtreq.idempotency_key = nanoid.nanoid();
+        pymtreq.idempotency_key = nanoid();
         let paymentsApi = new PaymentsApi();
 
         paymentsApi.createPayment(pymtreq).then(pymtRes => {
@@ -47,7 +47,7 @@ export function paymentRcvd  (req: Request,res: Response) : ExpressHandler<Reque
         let pymtreq = new CreatePaymentRequest();
         JSON.parse(req.body).orderid;
         pymtreq.order_id = req.body.orderid;
-        pymtreq.idempotency_key = nanoid.nanoid();
+        pymtreq.idempotency_key = nanoid();
         let paymentsApi = new PaymentsApi();
 
         paymentsApi.createPayment(pymtreq).then(pymtRes => {
