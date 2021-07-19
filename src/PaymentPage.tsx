@@ -55,7 +55,7 @@ export class PaymentPage extends React.Component<{},PaymentPageState> {
       this.setState({ errorMessages: [] })
       //alert("nonce created: " + nonce + ", buyerVerificationToken: " + buyerVerificationToken)
       
-      let email = (document.getElementById('email-conf') as HTMLInputElement).value;
+      let email = (document.getElementById('eml') as HTMLInputElement).value;
       let address = (document.getElementById('addr-value') as HTMLInputElement).value;
       let payload = {email,address,nonce,buyerVerificationToken}
       fetch('/api/process-payment', {
@@ -76,7 +76,7 @@ export class PaymentPage extends React.Component<{},PaymentPageState> {
     }
   
     createVerificationDetails() {
-      let email = (document.getElementById('email-conf') as HTMLInputElement).value;
+      let email = (document.getElementById('eml') as HTMLInputElement).value;
       let firstName = (document.getElementById('buyerFirstName') as HTMLInputElement).value;
       let lastName = (document.getElementById('buyerLastName') as HTMLInputElement).value;
       let city = (document.getElementById('city') as HTMLInputElement).value;
@@ -142,12 +142,14 @@ export class PaymentPage extends React.Component<{},PaymentPageState> {
               <TextField 
                 id="buyerFirstName"
                 label="First name"
+                variant="filled"
                 helperText="Required">
               </TextField>
 
               <TextField 
                 id="buyerLastName"
                 label="Last name"
+                variant="filled"
                 helperText="Required">
               </TextField>
               </fieldset>
@@ -155,30 +157,40 @@ export class PaymentPage extends React.Component<{},PaymentPageState> {
               <TextField 
                 id="billing-street-address"
                 label="Billing street address"
+                variant="filled"
                 helperText="Required">
               </TextField>
 
               <TextField 
                 id="city"
                 label="City"
-                helperText="Required">
+                helperText="Required"
+                variant="filled">
               </TextField>
               <TextField 
                 id="state"
                 label="State"
+                variant="filled"
                 helperText="Required">
               </TextField>
               <TextField 
                 id="zip"
                 label="Zip code"
+                variant="filled"
                 helperText="Required">
               </TextField>
               <TextField 
                 id="phone"
                 label="Phone"
+                variant="filled"
                 helperText="Required">
               </TextField>
-              
+              <TextField 
+                id="eml"
+                label="Email"
+                variant="filled"
+                helperText="Required">
+              </TextField>
               </fieldset>
               
             </AccordionDetails>         

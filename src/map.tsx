@@ -1,6 +1,7 @@
 import {MapContainer, TileLayer} from 'react-leaflet';
 import {LatLngBoundsExpression} from 'leaflet'
 import React from 'react'
+import { TextField } from '@material-ui/core';
 // tslint:disable-next-line
 //@ts-ignore
 import queryOverpass from '@derhuerst/query-overpass'
@@ -64,7 +65,15 @@ function MapPlaceholder() {
           }
           if (null !== addressNotFound) {
             addressNotFound.style.visibility = "visible";            
-          }            
+          }   
+          let errorDivElement: HTMLDivElement;    
+          if (null !== overpassError) {
+            errorDivElement = overpassError as HTMLDivElement;
+            let errorMsgElement: HTMLParagraphElement= (document.getElementById("overpass-error-message") as HTMLParagraphElement);
+            errorMsgElement.innerText += ": " + error.message
+            errorDivElement.style.visibility = 'visible'
+
+          }
         }
       }
     }
@@ -82,25 +91,41 @@ function MapPlaceholder() {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
         </MapContainer>
-        <h2 id="plaque-request-header">I want to order an historic plaque for:</h2>
-        <form id="address-form">
-          <label htmlFor="addr-value">Street Address&nbsp;&nbsp;&nbsp;</label>
-          <input id="addr-value" type="text" name="streetAddress"></input>
-          <br></br>
-          <label htmlFor="email-conf">Email Address&nbsp;&nbsp;&nbsp;</label>
-          <input id="email-conf" type="text" name="emailAddress"></input>
-          <div id="address-container"></div>
-          <button id="verify-address" type="button" onClick={this.verifyAddress}>Verify</button>
-        </form>
-        <div id="address-not-found">
-          <p>Sorry, I couldn't find that address in Brooklyn neighborhood. Please try again.</p>
-        </div>
-        <div id="invalid-email">
-          <p>Invalid email address.</p>
-        </div>
         <div id="overpass-error">
-          <p>Error connecting to Overpass server, try again</p>
+          <p id="overpass-error-message">Error connecting to Overpass server, try again</p>
         </div>
+        <h3 id="plaque-request-header">I want to order an historic plaque for:</h3>
+        <div className="blue"><p id="address-not-found">Sorry, that address was not found in Brooklyn</p></div>
+
+        <form id="address-form">
+          
+        <div className="float-container">
+
+<div className="float-child-left">
+  <div className="green">
+  
+<TextField 
+              id="addr-value"
+              label="Street address of your historic home"
+              variant="filled"
+              helperText="Required">
+            </TextField>
+  </div>
+</div>
+
+<div className="float-child-right">
+<button id="verify-address" type="button" onClick={this.verifyAddress}>Verify</button>
+
+</div>
+
+</div>
+
+          <br></br>
+          <div id="address-container"></div>
+        </form>
+        
+  
+ 
       </div>
     )
   }

@@ -25,6 +25,9 @@ export default class App extends React.Component<{},PlaqueAppState> {
     return (
     <div className="App">
           <MapWithPlaceholder />
+ 
+    
+    <PaymentPage />
     <div id="success-msg">
             <p>Congratulations! We have received your payment, and 
               will order your historic plaque made as soon as 
@@ -32,8 +35,6 @@ export default class App extends React.Component<{},PlaqueAppState> {
               (we get a discount making them in groups of three 
               or more)</p> 
     </div>
-    
-    <PaymentPage />
     </div>
     
   );

@@ -15,6 +15,7 @@ code {
 #payment-form {
   max-width: 550px;
   min-width: 300px;
+  max-height: min-content;
   margin: 150px auto;
   visibility: hidden;
 }
@@ -56,3 +57,12 @@ code {
   text-align: center;
   visibility: hidden;
 }
+
+#address-status-label {
+  color: red;
+}
+.float-container {
+  padding: 20px;
+  display: block;
+}
+
