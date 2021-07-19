@@ -98,7 +98,7 @@ export class PaymentPage extends React.Component<{},PaymentPageState> {
         },
         intent: "CHARGE",
         currencyCode: "USD",
-        amount: (this.state.price/100).toLocaleString()
+        amount: (this.state.price).toLocaleString()
       }
 
       return(vDetails)
@@ -126,29 +126,16 @@ export class PaymentPage extends React.Component<{},PaymentPageState> {
       
       return (
         <div id="payment-form">
-
-          
-          <SquarePaymentForm
-            sandbox={process.env.NODE_ENV !== "production"?true:false}
-            applicationId={process.env.REACT_APP_SANDBOX_APPLICATION_ID!==null?(process.env.REACT_APP_APPLICATION_ID as string):""}
-
-            locationId={process.env.REACT_APP_SANDBOX_LOCATION_ID!==null?(process.env.REACT_APP_LOCATION_ID as string):""}
-            cardNonceResponseReceived={this.cardNonceResponseReceived}
-            createVerificationDetails={this.createVerificationDetails}
-            formId="sqPaymentForm"
-            apiWrapper={SquarePaymentForm?.defaultProps?.apiWrapper ?? ""}
-          >
-          <h1>Payment Details (current cost: {this.state.price})</h1>
-            
+            <h2>Billing address and phone number</h2>
             <Accordion>
             <AccordionSummary
               expandIcon={<ExpandMore />}
               aria-label="Expand"
-              aria-controls="additional-actions1-content"
-              id="additional-actions1-header">
+              aria-controls="billing-address"
+              id="billing-address-header">
                     
               <p>Enter your billing address</p>
-              <fieldset>
+              <fieldset id="billing-address">
               <TextField 
                 id="buyerFirstName"
                 label="First name"
@@ -196,14 +183,25 @@ export class PaymentPage extends React.Component<{},PaymentPageState> {
             <AccordionSummary
               expandIcon={<ExpandMore />}
               aria-label="Expand"
-              aria-controls="additional-actions1-content"
-              id="additional-actions1-header">
+              aria-controls="sqPaymentForm"
+              id="sqPaymentForm-header">
                     
               <p>Credit Card Details</p>
 
 
             </AccordionSummary>   
             <AccordionDetails>
+
+          <SquarePaymentForm
+            sandbox={process.env.NODE_ENV !== "production"?true:false}
+            applicationId={process.env.REACT_APP_SANDBOX_APPLICATION_ID!==null?(process.env.REACT_APP_APPLICATION_ID as string):""}
+
+            locationId={process.env.REACT_APP_SANDBOX_LOCATION_ID!==null?(process.env.REACT_APP_LOCATION_ID as string):""}
+            cardNonceResponseReceived={this.cardNonceResponseReceived}
+            createVerificationDetails={this.createVerificationDetails}
+            formId="sqPaymentForm"
+            apiWrapper={SquarePaymentForm?.defaultProps?.apiWrapper ?? ""}
+          >            
             <fieldset className="sq-fieldset">
             <CreditCardNumberInput />
             <div className="sq-form-third">
@@ -219,14 +217,14 @@ export class PaymentPage extends React.Component<{},PaymentPageState> {
             </div>
         </fieldset>
 
-            </AccordionDetails>         
-          </Accordion>
 
 
         <CreditCardSubmitButton>
           Pay ${this.state.price}
         </CreditCardSubmitButton>
       </SquarePaymentForm>
+      </AccordionDetails>         
+          </Accordion>
   
           <div className="sq-error-message">
             {this.state.errorMessages.map(errorMessage =>

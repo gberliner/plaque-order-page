@@ -14,8 +14,10 @@ export default function processPayment(req: Request,res: Response): RequestHandl
         
         let pymt = new Payment();
         let pymtreq = new CreatePaymentRequest();
+        let paymentRequestObj = JSON.parse(req.body);
         JSON.parse(req.body).orderid;
-        pymtreq.order_id = req.body.orderid;
+        pymtreq.order_id = paymentRequestObj.orderid;
+        pymtreq.verification_token = paymentRequestObj.buyerVerificationToken;
         pymtreq.idempotency_key = nanoid();
         let paymentsApi = new PaymentsApi();
 
@@ -46,7 +48,9 @@ export function paymentRcvd  (req: Request,res: Response) : ExpressHandler<Reque
         let pymt = new Payment();
         let pymtreq = new CreatePaymentRequest();
         JSON.parse(req.body).orderid;
+        
         pymtreq.order_id = req.body.orderid;
+        pymtreq.verification_token = 
         pymtreq.idempotency_key = nanoid();
         let paymentsApi = new PaymentsApi();
 

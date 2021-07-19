@@ -9,7 +9,7 @@ type Req = {
 type Res = {
     status: Number;
     error?: string;
-    price?: BigInt;
+    price?: number;
 }
 //export default void function paymentRcvd  (req: Request,res: Response) : ExpressHandler<Request,Response> {        
 export default function checkPrice(req: Request, res: Response, next: NextFunction): RequestHandler<Request,Response,NextFunction> {
@@ -29,14 +29,16 @@ export default function checkPrice(req: Request, res: Response, next: NextFuncti
             let plaqueItemName = "Regular Plaque"
             if (resultSet.rowCount >= 1) {
                 // Good: we already have the results in the local db
-                res.json({status: 200, price: resultSet.rows[0].price});
+                let price_report_number = resultSet.rows[0].price/100.;
+                console.log("Read catalog item price from local db");
+                res.json({status: 200, price: price_report_number});
             } else {
                 locallyAvailable = false;
                 // Reach out to Square, then cache our results locally
                 let sqClient = new Square.Client(
                     {
                         environment: process.env.NODE_ENV === "production"?Square.Environment.Production:Square.Environment.Sandbox,
-                        accessToken: process.env.ACCESS_TOKEN,
+                        accessToken: process.env.SQUARE_ACCESS_TOKEN,
                         
                     }
                 );
@@ -65,15 +67,24 @@ export default function checkPrice(req: Request, res: Response, next: NextFuncti
                             }
                         } while (item !== null)
                         //Report back our results
-                        res.json({status: 200, price: price_money});
+                        let price_number = Number(price_money)/100.0;
+                        let price_report = price_number.toString();
+                        let price_report_db = Number(price_money).toString();
+                        let price_report_number = parseInt(price_report);
+                        res.json({status: 200, price: (price_report_number)});
 
                         //Now we cache the results locally
+                        let catalog_update_query: string;
                         if (undefined !== plaqueCatalogId) {
-                            pgClient.query(`insert into catalog values (${plaqueCatalogId},${plaqueItemName},${price_money})`).then(onFulfilled => {}).catch(
+                            catalog_update_query = `insert into catalog (objectid,name,price) values ('${plaqueCatalogId}','${plaqueItemName}',${price_report_db})`;
+                            console.log("making catalog update: " + catalog_update_query);
+                            pgClient.query(catalog_update_query).then(onFulfilled => {
+                                console.log("catalog entry saved to database: " + catalog_update_query)
+                            }).catch(
                                 (error) => {
                                     console.error(error.message)
                                 }
-                            )    
+                            )
                         }
                     }
                     if (price_money === undefined) {

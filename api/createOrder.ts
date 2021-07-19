@@ -117,7 +117,7 @@ export  function createPlaqueOrderrr(req:Request, res:Response): ExpressHandler<
     let client = new Square.Client(
         {
             environment: process.env.NODE_ENV === "production"?Square.Environment.Production:Square.Environment.Sandbox,
-            accessToken: process.env.ACCESS_TOKEN
+            accessToken: process.env.SQUARE_ACCESS_TOKEN
         }
     )
     pgClient.connect();
