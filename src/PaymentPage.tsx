@@ -126,16 +126,19 @@ export class PaymentPage extends React.Component<{},PaymentPageState> {
       
       return (
         <div id="payment-form">
-            <h2>Billing address and phone number</h2>
+          <h3>Please provide us with payment details</h3>
             <Accordion>
             <AccordionSummary
               expandIcon={<ExpandMore />}
               aria-label="Expand"
               aria-controls="billing-address"
               id="billing-address-header">
-                    
-              <p>Enter your billing address</p>
-              <fieldset id="billing-address">
+              Billing address and phone number
+ 
+              
+            </AccordionSummary>   
+            <AccordionDetails>
+              <fieldset id="first-and-last-name">
               <TextField 
                 id="buyerFirstName"
                 label="First name"
@@ -148,6 +151,7 @@ export class PaymentPage extends React.Component<{},PaymentPageState> {
                 helperText="Required">
               </TextField>
               </fieldset>
+              <fieldset id="billing-address">
               <TextField 
                 id="billing-street-address"
                 label="Billing street address"
@@ -175,8 +179,8 @@ export class PaymentPage extends React.Component<{},PaymentPageState> {
                 helperText="Required">
               </TextField>
               
-            </AccordionSummary>   
-            <AccordionDetails>
+              </fieldset>
+              
             </AccordionDetails>         
           </Accordion>
           <Accordion>
