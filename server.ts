@@ -11,5 +11,5 @@ app.get('/ping', function (req, res) {
 });
 
 app.post('/api/process-payment', createPlaqueOrder, processPayment);
-app.get('/check-price', checkPrice);
+app.get('/api/check-price', checkPrice);
 app.listen(process.env.EXPRESS_PORT || 8080);

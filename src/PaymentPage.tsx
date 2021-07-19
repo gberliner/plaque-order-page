@@ -23,7 +23,7 @@ if (process.env.NODE_ENV !== "production") {
 
 async function getCurrentPrice() {
  
-  let res = await fetch("/check-price");
+  let res = await fetch("/api/check-price");
   let results = await res.json();
   return results["price"];
 }
@@ -105,7 +105,7 @@ export class PaymentPage extends React.Component<{},PaymentPageState> {
     }
 
     componentDidMount() {
-      fetch('/check-price').then(res => {
+      fetch('/api/check-price').then(res => {
         res.json().then(pricedata =>{
           this.setState(
             {
@@ -130,9 +130,9 @@ export class PaymentPage extends React.Component<{},PaymentPageState> {
           
           <SquarePaymentForm
             sandbox={process.env.NODE_ENV !== "production"?true:false}
-            applicationId={process.env.REACT_APP_SANDBOX_APPLICATION_ID!==null?(process.env.REACT_APP_SANDBOX_APPLICATION_ID as string):""}
+            applicationId={process.env.REACT_APP_SANDBOX_APPLICATION_ID!==null?(process.env.REACT_APP_APPLICATION_ID as string):""}
 
-            locationId={process.env.REACT_APP_SANDBOX_LOCATION_ID!==null?(process.env.REACT_APP_SANDBOX_LOCATION_ID as string):""}
+            locationId={process.env.REACT_APP_SANDBOX_LOCATION_ID!==null?(process.env.REACT_APP_LOCATION_ID as string):""}
             cardNonceResponseReceived={this.cardNonceResponseReceived}
             createVerificationDetails={this.createVerificationDetails}
             formId="sqPaymentForm"

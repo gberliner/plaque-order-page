@@ -35,7 +35,7 @@ function MapPlaceholder() {
         let overpassError = document.getElementById('overpass-error');
         let pymtForm = document.getElementById('payment-form')
         try {
-          let res = queryOverpass(
+          let res = await queryOverpass(
             `[out:json][timeout:120][bbox:45.48965204000928,-122.66239643096925,45.50168487047437,-122.63664722442628];
           nwr["addr:housenumber"="${houseNumber}"]["addr:street"~"${streetName}"];
           out body;`, {endpoint: "https://overpass.kumi.systems/api/interpreter"});

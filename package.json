@@ -44,7 +44,7 @@
     "web-vitals": "^1.1.2"
   },
   "scripts": {
-    "start": "concurrently \"node server.js\" \"react-scripts start\"",
+    "start": "concurrently \"npm run start-backend\" \"npm run start-frontend\"",
     "start-frontend": "react-scripts start",
     "start-backend": "node --es-module-specifier-resolution=node server.js",
     "build": "react-scripts build && npm run build-api",
