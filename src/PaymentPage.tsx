@@ -11,6 +11,10 @@ import {SqVerificationDetails} from 'react-square-payment-form/lib/components/mo
  import React from 'react'
 import 'react-square-payment-form/lib/default.css'
 import { SqCardData, SqContact, SqError, SqShippingOption } from 'react-square-payment-form/lib/components/models';
+import {FormControl, FormGroup, TextField, Accordion, AccordionSummary, AccordionDetails} from '@material-ui/core'
+import {ExpandMore} from '@material-ui/icons'
+import { makeStyles } from '@material-ui/core/styles';
+
 if (process.env.NODE_ENV !== "production") {
     var dotenv = require ('dotenv');
     dotenv.config();
@@ -75,11 +79,11 @@ export class PaymentPage extends React.Component<{},PaymentPageState> {
   
     createVerificationDetails() {
       let email = (document.getElementById('email-conf') as HTMLInputElement).value;
-      let firstName = (document.getElementById('buyerName') as HTMLInputElement).value;
-      let lastName = (document.getElementById('buyerSurname') as HTMLInputElement).value;
+      let firstName = (document.getElementById('buyerFirstName') as HTMLInputElement).value;
+      let lastName = (document.getElementById('buyerLastName') as HTMLInputElement).value;
       let city = (document.getElementById('city') as HTMLInputElement).value;
       let state = (document.getElementById('state') as HTMLInputElement).value;
-      let address = (document.getElementById('addr-value') as HTMLInputElement).value;
+      let address = (document.getElementById('billing-street-address') as HTMLInputElement).value;
       let zipcode = (document.getElementById('zipcode') as HTMLInputElement).value
       let phone = (document.getElementById('phone') as HTMLInputElement).value
       let vDetails: SqVerificationDetails
@@ -119,8 +123,8 @@ export class PaymentPage extends React.Component<{},PaymentPageState> {
       
       return (
         <div id="payment-form">
-          <h1>Payment Details (current cost: {this.state.price})</h1>
-  
+
+          
           <SquarePaymentForm
             sandbox={process.env.NODE_ENV !== "production"?true:false}
             applicationId={process.env.REACT_APP_SANDBOX_APPLICATION_ID!==null?(process.env.REACT_APP_SANDBOX_APPLICATION_ID as string):""}
@@ -128,10 +132,75 @@ export class PaymentPage extends React.Component<{},PaymentPageState> {
             locationId={process.env.REACT_APP_SANDBOX_LOCATION_ID!==null?(process.env.REACT_APP_SANDBOX_LOCATION_ID as string):""}
             cardNonceResponseReceived={this.cardNonceResponseReceived}
             createVerificationDetails={this.createVerificationDetails}
-            formId={"undefined"}
-            apiWrapper={"undefined"}
+            formId="sqPaymentForm"
+            apiWrapper={SquarePaymentForm.defaultProps.apiWrapper}
           >
+          <h1>Payment Details (current cost: {this.state.price})</h1>
+            
+            <Accordion>
+            <AccordionSummary
+              expandIcon={<ExpandMore />}
+              aria-label="Expand"
+              aria-controls="additional-actions1-content"
+              id="additional-actions1-header">
+                    
+              <p>Enter your billing address</p>
+              <fieldset>
+              <TextField 
+                id="buyerFirstName"
+                label="First name"
+                helperText="Required">
+              </TextField>
 
+              <TextField 
+                id="buyerLastName"
+                label="Last name"
+                helperText="Required">
+              </TextField>
+              </fieldset>
+              <TextField 
+                id="billing-street-address"
+                label="Billing street address"
+                helperText="Required">
+              </TextField>
+
+              <TextField 
+                id="city"
+                label="City"
+                helperText="Required">
+              </TextField>
+              <TextField 
+                id="state"
+                label="State"
+                helperText="Required">
+              </TextField>
+              <TextField 
+                id="zip"
+                label="Zip code"
+                helperText="Required">
+              </TextField>
+              <TextField 
+                id="phone"
+                label="Phone"
+                helperText="Required">
+              </TextField>
+              
+            </AccordionSummary>   
+            <AccordionDetails>
+            </AccordionDetails>         
+          </Accordion>
+          <Accordion>
+            <AccordionSummary
+              expandIcon={<ExpandMore />}
+              aria-label="Expand"
+              aria-controls="additional-actions1-content"
+              id="additional-actions1-header">
+                    
+              <p>Credit Card Details</p>
+
+
+            </AccordionSummary>   
+            <AccordionDetails>
             <fieldset className="sq-fieldset">
             <CreditCardNumberInput />
             <div className="sq-form-third">
@@ -146,6 +215,10 @@ export class PaymentPage extends React.Component<{},PaymentPageState> {
             <CreditCardCVVInput />
             </div>
         </fieldset>
+
+            </AccordionDetails>         
+          </Accordion>
+
 
         <CreditCardSubmitButton>
           Pay ${this.state.price}
