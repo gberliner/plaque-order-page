@@ -16,7 +16,7 @@ type Res = {
     error?: string;
     orderid?: string;
 }
-export function createPlaqueOrderr(req:Request, res:Response, next:NextFunction): RequestHandler<Request,Response,NextFunction>  {
+export default function createPlaqueOrder(req:Request, res:Response, next:NextFunction): RequestHandler<Request,Response,NextFunction>  {
     let plaqueCatalogId: string;
     let catalogItemName = "Standard Plaque"
     let pgClient = new pg.Client({
@@ -101,9 +101,10 @@ export function createPlaqueOrderr(req:Request, res:Response, next:NextFunction)
         pgClient.end()
     }
     );
-    return;
+    return((void(null) as unknown) as RequestHandler<Request,Response,NextFunction>);
 }
-export default function createPlaqueOrder(req:Request, res:Response): ExpressHandler<Request,Response>  {
+
+export  function createPlaqueOrderrr(req:Request, res:Response): ExpressHandler<Request,Response>  {
     let plaqueCatalogId: string;
     let catalogItemName = "Standard Plaque"
     let pgClient = new pg.Client({
@@ -183,3 +184,5 @@ export default function createPlaqueOrder(req:Request, res:Response): ExpressHan
     return((void(null) as unknown) as ExpressHandler<Request,Response>);
 
 }
+
+export {createPlaqueOrder}

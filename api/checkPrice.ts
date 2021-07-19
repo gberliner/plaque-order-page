@@ -12,7 +12,7 @@ type Res = {
     price?: BigInt;
 }
 //export default void function paymentRcvd  (req: Request,res: Response) : ExpressHandler<Request,Response> {        
-export function checkPric(req: Request, res: Response, next: NextFunction): RequestHandler<Request,Response,NextFunction> {
+export default function checkPrice(req: Request, res: Response, next: NextFunction): RequestHandler<Request,Response,NextFunction> {
     let connectionString = process.env.DATABASE_URI;
     let pgClient = new pg.Client({
         connectionString,
@@ -92,9 +92,10 @@ export function checkPric(req: Request, res: Response, next: NextFunction): Requ
         }).finally(()=>{
             pgClient.end();
         });
-    return;
+    return((void(null) as unknown) as RequestHandler<Request,Response>);
+
 } 
-export default void function checkPrice(req: Request,res: Response): ExpressHandler<Request,Response> {
+export function checkPriceeee(req: Request,res: Response): ExpressHandler<Request,Response> {
     let connectionString = process.env.DATABASE_URI;
     let pgClient = new pg.Client({
         connectionString,
@@ -177,3 +178,4 @@ export default void function checkPrice(req: Request,res: Response): ExpressHand
     return((void(null) as unknown) as ExpressHandler<Request,Response>);
 }
     
+export {checkPrice}

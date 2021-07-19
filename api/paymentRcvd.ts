@@ -5,7 +5,7 @@ import {ExpressHandler} from '../interfaces/handlers'
 import { Payment,CreatePaymentRequest, PaymentsApi, } from 'square-connect';
 import nanoid from 'nanoid';
 //type Req = { email: string; housenumber: string; streetnumber: string; orderid: string };
-export function processPayment(req: Request,res: Response): RequestHandler<Request,Response> {
+export default function processPayment(req: Request,res: Response): RequestHandler<Request,Response> {
     try {
         let url = 'https://connect.squareupsandbox.com/v2/payments'
         if (process.env.NODE_ENV === "production") {
@@ -32,10 +32,11 @@ export function processPayment(req: Request,res: Response): RequestHandler<Reque
     } catch (error) {
         console.error(error.message);
     }
-    return;
+    return((void(null) as unknown) as RequestHandler<Request,Response>);
+
 }
 //type Res = { message: string|undefined };
-export default void function paymentRcvd  (req: Request,res: Response) : ExpressHandler<Request,Response> {        
+export function paymentRcvd  (req: Request,res: Response) : ExpressHandler<Request,Response> {        
     try {
         let url = 'https://connect.squareupsandbox.com/v2/payments'
         if (process.env.NODE_ENV === "production") {
@@ -64,3 +65,5 @@ export default void function paymentRcvd  (req: Request,res: Response) : Express
     }
     return((void(null) as unknown) as ExpressHandler<Request,Response>);
 }
+
+export {processPayment}
