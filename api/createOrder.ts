@@ -25,13 +25,14 @@ export default function createPlaqueOrder(req:Request, res:Response, next:NextFu
           rejectUnauthorized: false
         }
     })
-    let reqData: Req = JSON.parse(req.body);
+    
+    let reqData: Req = req.body;
     let email = reqData?.email;
     let address = reqData?.address;
     let client = new Square.Client(
         {
             environment: process.env.NODE_ENV === "production"?Square.Environment.Production:Square.Environment.Sandbox,
-            accessToken: process.env.ACCESS_TOKEN
+            accessToken: process.env.SQUARE_ACCESS_TOKEN
         }
     )
     pgClient.connect();
