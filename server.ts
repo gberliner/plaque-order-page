@@ -5,7 +5,7 @@ import {createPlaqueOrder} from './api/createOrder';
     import {checkPrice} from './api/checkPrice';
 const app = express();
 app.use(express.static(path.join(import.meta.url, 'build')));
-//app.use(express.json);
+app.use(express.json);
 app.get('/ping', function (req, res) {
  return res.send('pong');
 });
