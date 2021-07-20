@@ -73,14 +73,14 @@ export default function createPlaqueOrder(req:Request, res:Response, next:NextFu
                     let sqNewOrderId: string|undefined;
                     if (statusCode !== 200) {
                         console.error('bad http response status: ' + statusCode)
-                        res.send({status: statusCode, error: result?.errors?.join(" ")})
+                        next(`bad http response status calling ordersApi: {statusCode} ` + result?.errors?.join(" ")??"no further details available")
                     } else {
                         sqNewOrderId = result?.order?.id
                         try {
                             await pgClient.query(`insert into CustOrders(SqOrderId,CustEmail,CustAddr) values (${sqNewOrderId},${email},${address})`);
                         } catch (error) {
                             console.error(error?.message)
-                            res.send({status: 500, error: "Failed to update table CustOrders: " + error?.message})
+                            next("Failed to update table CustOrders: " + error?.message??" no further details available")
                         }
                         next()
                     }
@@ -89,14 +89,14 @@ export default function createPlaqueOrder(req:Request, res:Response, next:NextFu
     
 
                 } catch (error) {
-                    res.send({status: 500, error: `call to Square::createOrder failed: ${error.message}`})
+                    next(`call to Square::createOrder failed: ${error.message}`)
                 }
-            } else {
-                res.json({status: 500, error: "failed to retrieve catalog item price"});
+         } else {
+                next("failed to retrieve catalog item price")
             }        
         }
     ).catch((error) => {
-        res.json({status: 500, error: error.message})
+        next(error)
     }
     ).finally(() => {
         pgClient.end()
@@ -105,85 +105,5 @@ export default function createPlaqueOrder(req:Request, res:Response, next:NextFu
     return((void(null) as unknown) as RequestHandler<Request,Response,NextFunction>);
 }
 
-export  function createPlaqueOrderrr(req:Request, res:Response): ExpressHandler<Request,Response>  {
-    let plaqueCatalogId: string;
-    let catalogItemName = "Standard Plaque"
-    let pgClient = new pg.Client({
-        connectionString: process.env.DATABASE_URI,
-        ssl: {
-          rejectUnauthorized: false
-        }
-    })
-
-    let client = new Square.Client(
-        {
-            environment: process.env.NODE_ENV === "production"?Square.Environment.Production:Square.Environment.Sandbox,
-            accessToken: process.env.SQUARE_ACCESS_TOKEN
-        }
-    )
-    pgClient.connect();
-    pgClient.query(`select ObjectId from SalesCatalog where name="${catalogItemName}"`).then(
-        async (rset) => {
-            if (rset.rowCount >= 1) {
-                let resultRow = rset.rows.pop();
-                for (let idx=0;idx < rset.fields.length; idx++) {
-                    if (rset.fields[idx].name === "ObjectId") {
-                        plaqueCatalogId = resultRow[idx];
-                        break;
-                    } 
-                }
-                const bodyOrderLineItems: Square.OrderLineItem[] = [];
-    
-    
-    
-                const bodyOrderlineItems0: Square.OrderLineItem = {
-                    quantity: '1',
-                };
-                bodyOrderlineItems0.catalogObjectId = plaqueCatalogId;
-            
-                bodyOrderLineItems[0] = bodyOrderlineItems0;
-            
-                const bodyOrder: Square.Order = {
-                    locationId: (process.env.REACT_APP_LOCATION_ID===undefined?"undefined":process.env.REACT_APP_LOCATION_ID),
-                };
-                bodyOrder.lineItems = bodyOrderLineItems
-            
-                const body: Square.CreateOrderRequest = {};
-                body.order = bodyOrder
-                let ordersApi = new OrdersApi(client);
-                try {
-                    const {result, ...httpResponse} = await ordersApi.createOrder(body)
-                    const {statusCode, headers} = httpResponse;
-                    body.idempotencyKey = nanoid();
-                    //body.order.id
-                    let newOrderId: string|undefined;
-                    if (statusCode !== 200) {
-                        console.error('bad http response status: ' + statusCode)
-                        res.send({status: statusCode, error: result?.errors?.join(" ")})
-                    } else {
-                        newOrderId = result?.order?.id
-                        res.send({orderid: newOrderId})
-                    }
-    
-                    // Done creating Square order  
-    
-
-                } catch (error) {
-                    res.send({status: 500, error: `call to Square::createOrder failed: ${error.message}`})
-                }
-            } else {
-                res.json({status: 500, error: "failed to retrieve catalog item price"});
-            }        
-        }
-    ).catch((error) => {
-        res.json({status: 500, error: error.message})
-    }
-    ).finally(() => {
-        pgClient.end()
-    }
-    );
-    return((void(null) as unknown) as ExpressHandler<Request,Response>);
-
-}
 
 export {createPlaqueOrder}

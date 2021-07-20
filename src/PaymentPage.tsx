@@ -35,18 +35,20 @@ export class PaymentPage extends React.Component<{},PaymentPageState> {
 
     constructor(props: {} | Readonly<{}>) {
       super(props)
+      this.createVerificationDetails = this.createVerificationDetails.bind(this)
+      this.cardNonceResponseReceived = this.cardNonceResponseReceived.bind(this)
       this.state = {
         price: 9999,
         errorMessages: [],
       }
     }
  
-    cardNonceResponseReceived = (errors: SqError[]|null, nonce: string,
+    cardNonceResponseReceived(errors: SqError[]|null, nonce: string,
        cardData: SqCardData, 
        buyerVerificationToken?: string|undefined,
        billingContact?: SqContact|undefined,
        shippingContact?: SqContact|undefined,
-       shippingOption?: SqShippingOption|undefined) => {
+       shippingOption?: SqShippingOption|undefined) {
       if (errors) {
         this.setState({ errorMessages: errors.map((error: any) => error?.message) })
         return
@@ -57,9 +59,10 @@ export class PaymentPage extends React.Component<{},PaymentPageState> {
       
       let email = (document.getElementById('eml') as HTMLInputElement).value;
       let address = (document.getElementById('addr-value') as HTMLInputElement).value;
-      let payload = {email,address,nonce,buyerVerificationToken}
+      let payload = {nonce,buyerVerificationToken,email,address}
       fetch('/api/process-payment', {
         method: 'POST',
+        headers: {"Content-Type": "application/json"},
         body: JSON.stringify(payload)
       }).then(res => {
         let successMsg = document.getElementById('success-msg')
@@ -76,6 +79,7 @@ export class PaymentPage extends React.Component<{},PaymentPageState> {
     }
   
     createVerificationDetails() {
+      let amt = (this.state.price).toLocaleString();
       let email = (document.getElementById('eml') as HTMLInputElement).value;
       let firstName = (document.getElementById('buyerFirstName') as HTMLInputElement).value;
       let lastName = (document.getElementById('buyerLastName') as HTMLInputElement).value;
@@ -98,7 +102,7 @@ export class PaymentPage extends React.Component<{},PaymentPageState> {
         },
         intent: "CHARGE",
         currencyCode: "USD",
-        amount: (this.state.price).toLocaleString()
+        amount: amt
       }
 
       return(vDetails)
@@ -174,7 +178,7 @@ export class PaymentPage extends React.Component<{},PaymentPageState> {
                 helperText="Required">
               </TextField>
               <TextField 
-                id="zip"
+                id="zipcode"
                 label="Zip code"
                 variant="filled"
                 helperText="Required">
