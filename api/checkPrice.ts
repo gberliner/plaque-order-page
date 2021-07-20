@@ -22,7 +22,7 @@ export default function checkPrice(req: Request, res: Response, next: NextFuncti
         }
     });
     pgClient.connect();
-    pgClient.query("select price from catalog where name='Regular Plaque'").then(
+    pgClient.query("select price from salescatalog where name='Regular Plaque'").then(
         async (resultSet) => {
             let locallyAvailable = true;
             let price_money: BigInt | undefined;
@@ -76,7 +76,7 @@ export default function checkPrice(req: Request, res: Response, next: NextFuncti
                         //Now we cache the results locally
                         let catalog_update_query: string;
                         if (undefined !== plaqueCatalogId) {
-                            catalog_update_query = `insert into catalog (objectid,name,price) values ('${plaqueCatalogId}','${plaqueItemName}',${price_report_db})`;
+                            catalog_update_query = `insert into salescatalog (objectid,name,price) values ('${plaqueCatalogId}','${plaqueItemName}',${price_report_db})`;
                             console.log("making catalog update: " + catalog_update_query);
                             pgClient.query(catalog_update_query).then(onFulfilled => {
                                 console.log("catalog entry saved to database: " + catalog_update_query)

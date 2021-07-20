@@ -76,8 +76,12 @@ export default function createPlaqueOrder(req:Request, res:Response, next:NextFu
                         next(`bad http response status calling ordersApi: {statusCode} ` + result?.errors?.join(" ")??"no further details available")
                     } else {
                         sqNewOrderId = result?.order?.id
+                        if (undefined === sqNewOrderId) {
+                            next("apparent glitch in square orderapi: no new orderid returned")
+                        }
                         try {
                             await pgClient.query(`insert into CustOrders(SqOrderId,CustEmail,CustAddr) values (${sqNewOrderId},${email},${address})`);
+                            req.body["orderid"] = sqNewOrderId
                         } catch (error) {
                             console.error(error?.message)
                             next("Failed to update table CustOrders: " + error?.message??" no further details available")
