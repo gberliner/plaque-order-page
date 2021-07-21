@@ -2,6 +2,7 @@ import logo from './logo.svg';
 import './App.css';
 import {MapWithPlaceholder} from './map'
 import {PaymentPage} from './PaymentPage'
+import { NewPaymentForm } from './NewPaymentForm';
 
 import 'leaflet/dist/leaflet.css';
 import React from 'react';
@@ -23,20 +24,10 @@ export default class App extends React.Component<{},PlaqueAppState> {
     const price = this.state.plaquePrice;
     const orderId = this.state.orderId; 
     return (
-    <div className="App">
-          <MapWithPlaceholder />
- 
-    
-    <PaymentPage />
-    <div id="success-msg">
-            <p>Congratulations! We have received your payment, and 
-              will order your historic plaque made as soon as 
-              sufficient orders from your neighbors also come in 
-              (we get a discount making them in groups of three 
-              or more)</p> 
-    </div>
-    </div>
-    
-  );
+      <div className="App">
+        <MapWithPlaceholder />
+        <NewPaymentForm />
+      </div>
+    );
 }
 }

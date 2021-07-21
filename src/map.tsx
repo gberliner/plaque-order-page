@@ -34,7 +34,7 @@ function MapPlaceholder() {
         var streetName = parsedAddress[2];
         let addressNotFound = document.getElementById('address-not-found');
         let overpassError = document.getElementById('overpass-error');
-        let pymtForm = document.getElementById('payment-form')
+        let pymtForm = document.getElementById('plaque-payment-form')
         try {
           let res = await queryOverpass(
             `[out:json][timeout:120][bbox:45.48965204000928,-122.66239643096925,45.50168487047437,-122.63664722442628];

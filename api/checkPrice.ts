@@ -15,6 +15,7 @@ type Res = {
 //export default void function paymentRcvd  (req: Request,res: Response) : ExpressHandler<Request,Response> {        
 export default function checkPrice(req: Request, res: Response, next: NextFunction): RequestHandler<Request,Response,NextFunction> {
     let connectionString = process.env.DATABASE_URI;
+    let productName = "Regular Plaque"
     let pgClient = new pg.Client({
         connectionString,
         ssl: {
@@ -22,12 +23,11 @@ export default function checkPrice(req: Request, res: Response, next: NextFuncti
         }
     });
     pgClient.connect();
-    pgClient.query("select price from salescatalog where name='Regular Plaque'").then(
+    pgClient.query(`select price from salescatalog where name='${productName}'`).then(
         async (resultSet) => {
             let locallyAvailable = true;
-            let price_money: BigInt | undefined;
+            let price_money: BigInt|undefined;
             let plaqueCatalogId: string|undefined;
-            let plaqueItemName = "Regular Plaque"
             if (resultSet.rowCount >= 1) {
                 // Good: we already have the results in the local db
                 let price_report_number = resultSet.rows[0].price/100.;
@@ -44,12 +44,11 @@ export default function checkPrice(req: Request, res: Response, next: NextFuncti
                         
                     }
                 );
-        
+                let currentId: string
                 let capi = new CatalogApi(sqClient);
                 try {
                     const {result,...httpResponse} = await capi.listCatalog("","ITEM_VARIATION");
                     let r = result;
-                    let objectId: string|undefined;
 
                     if (httpResponse.statusCode !== 200) {
                         console.error("http response status: error " + httpResponse.statusCode)
@@ -59,11 +58,12 @@ export default function checkPrice(req: Request, res: Response, next: NextFuncti
                         let item: Square.CatalogObject|undefined;
                         do {
                             item = r?.objects?.pop()
-                            if (item?.itemVariationData?.name === plaqueItemName) {
+                            if (item?.itemVariationData?.name === productName) {
+                                // @ts-ignore
+                                plaqueCatalogId = item?.id
+                                // @ts-ignore
                                 price_money = item?.itemVariationData?.priceMoney?.amount;
-                                objectId = item.itemVariationData.itemId
-                                plaqueCatalogId = objectId;
-                                break;
+                                break
                             }
                         } while (item !== null)
                         //Report back our results
@@ -76,7 +76,7 @@ export default function checkPrice(req: Request, res: Response, next: NextFuncti
                         //Now we cache the results locally
                         let catalog_update_query: string;
                         if (undefined !== plaqueCatalogId) {
-                            catalog_update_query = `insert into salescatalog (objectid,name,price) values ('${plaqueCatalogId}','${plaqueItemName}',${price_report_db})`;
+                            catalog_update_query = `insert into salescatalog (objectid,name,price) values ('${plaqueCatalogId}','${productName}',${price_report_db})`;
                             console.log("making catalog update: " + catalog_update_query);
                             pgClient.query(catalog_update_query).then(onFulfilled => {
                                 console.log("catalog entry saved to database: " + catalog_update_query)

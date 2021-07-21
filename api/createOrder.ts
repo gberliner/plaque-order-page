@@ -18,7 +18,11 @@ type Res = {
 }
 export default function createPlaqueOrder(req:Request, res:Response, next:NextFunction): RequestHandler<Request,Response,NextFunction>  {
     let plaqueCatalogId: string;
-    let catalogItemName = "Standard Plaque"
+    let base_price_money: Square.Money  = {
+        amount: BigInt(9999),
+        currency: 'USD'
+    };
+    let catalogItemName = "Regular Plaque"
     let pgClient = new pg.Client({
         connectionString: process.env.DATABASE_URI,
         ssl: {
@@ -31,21 +35,20 @@ export default function createPlaqueOrder(req:Request, res:Response, next:NextFu
     let address = reqData?.address;
     let client = new Square.Client(
         {
+            customUrl: "https://connect.squareupsandbox.com",
             environment: process.env.NODE_ENV === "production"?Square.Environment.Production:Square.Environment.Sandbox,
             accessToken: process.env.SQUARE_ACCESS_TOKEN
         }
     )
     pgClient.connect();
-    pgClient.query(`select ObjectId from SalesCatalog where name="${catalogItemName}"`).then(
+    pgClient.query(`select ObjectId,price from SalesCatalog where name='${catalogItemName}'`).then(
         async (rset) => {
             if (rset.rowCount >= 1) {
-                let resultRow = rset.rows.pop();
-                for (let idx=0;idx < rset.fields.length; idx++) {
-                    if (rset.fields[idx].name === "ObjectId") {
-                        plaqueCatalogId = resultRow[idx];
-                        break;
-                    } 
-                }
+                plaqueCatalogId =rset.rows[0]?.objectid;
+                let intprice = rset.rows[0]?.price
+                base_price_money.amount = BigInt(intprice/100.)
+                base_price_money.currency = 'USD'
+            
                 const bodyOrderLineItems: Square.OrderLineItem[] = [];
     
     
@@ -53,10 +56,9 @@ export default function createPlaqueOrder(req:Request, res:Response, next:NextFu
                 const bodyOrderlineItems0: Square.OrderLineItem = {
                     quantity: '1',
                 };
+                bodyOrderlineItems0.basePriceMoney = base_price_money;
                 bodyOrderlineItems0.catalogObjectId = plaqueCatalogId;
-            
                 bodyOrderLineItems[0] = bodyOrderlineItems0;
-            
                 const bodyOrder: Square.Order = {
                     locationId: (process.env.REACT_APP_LOCATION_ID===undefined?"undefined":process.env.REACT_APP_LOCATION_ID),
                 };
@@ -64,11 +66,12 @@ export default function createPlaqueOrder(req:Request, res:Response, next:NextFu
             
                 const body: Square.CreateOrderRequest = {};
                 body.order = bodyOrder
+                body.idempotencyKey = nanoid();
+
                 let ordersApi = new OrdersApi(client);
                 try {
                     const {result, ...httpResponse} = await ordersApi.createOrder(body)
-                    const {statusCode, ...rest} = httpResponse;
-                    body.idempotencyKey = nanoid();
+                    const {statusCode,headers} = httpResponse;
                     //body.order.id
                     let sqNewOrderId: string|undefined;
                     if (statusCode !== 200) {
@@ -80,8 +83,9 @@ export default function createPlaqueOrder(req:Request, res:Response, next:NextFu
                             next("apparent glitch in square orderapi: no new orderid returned")
                         }
                         try {
-                            await pgClient.query(`insert into CustOrders(SqOrderId,CustEmail,CustAddr) values (${sqNewOrderId},${email},${address})`);
-                            req.body["orderid"] = sqNewOrderId
+                            await pgClient.query(`insert into CustOrders(SqOrderId,CustEmail,CustAddr) values ('${sqNewOrderId}','${email}','${address}')`);
+                            req.body["orderid"] = sqNewOrderId;
+                            req.body["price"] = base_price_money.amount.toLocaleString();
                         } catch (error) {
                             console.error(error?.message)
                             next("Failed to update table CustOrders: " + error?.message??" no further details available")
@@ -93,6 +97,9 @@ export default function createPlaqueOrder(req:Request, res:Response, next:NextFu
     
 
                 } catch (error) {
+                    if (undefined !== error.body) {
+                        console.error(error.body);
+                    }
                     next(`call to Square::createOrder failed: ${error.message}`)
                 }
          } else {
