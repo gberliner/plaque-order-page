@@ -91,6 +91,7 @@ function MapPlaceholder() {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
         </MapContainer>
+        <div id='map-form'>
         <div id="overpass-error">
           <p id="overpass-error-message">Error connecting to Overpass server, try again</p>
         </div>
@@ -125,7 +126,7 @@ function MapPlaceholder() {
         </form>
         
   
- 
+        </div>
       </div>
     )
   }

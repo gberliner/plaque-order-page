@@ -3,6 +3,8 @@ import {SquarePaymentsForm,CreditCardInput,} from 'react-square-web-payments-sdk
 import {TokenResult} from '@square/web-sdk'
 import {Accordion, AccordionDetails, AccordionSummary,TextField} from '@material-ui/core'
 import { ExpandMore } from '@material-ui/icons';
+import {Alert,Color} from '@material-ui/lab';
+
 const applicationId = process.env.REACT_APP_APPLICATION_ID
 const locationId = process.env.REACT_APP_LOCATION_ID;
 
@@ -23,6 +25,7 @@ type PaymentStatus = "unpaid"|"error"|"paid"
 type NewPaymentFormState = {
     price: number;
     pymtStatus: PaymentStatus;
+    alertText: string;
 }
 
 enum statusEnum {
@@ -35,10 +38,10 @@ export class NewPaymentForm extends React.Component<NewPaymentFormProps,NewPayme
         super(props);
         this.setState({
             price: 9999,
-            pymtStatus: "unpaid"
+            pymtStatus: "unpaid",
+            alertText: ""
         })
         this.cardTokenizeResponseReceived = this.cardTokenizeResponseReceived.bind(this)
-        this.displayPaymentResults = this.displayPaymentResults.bind(this)
         this.formatStatus = this.formatStatus.bind(this);
     }
 
@@ -61,19 +64,6 @@ export class NewPaymentForm extends React.Component<NewPaymentFormProps,NewPayme
         })
     }
 
-    displayPaymentResults(status: string, rcpt: PymtStatusObj) {
-        let e: HTMLDivElement = document.getElementById('pymt-status-msg') as HTMLDivElement        
-        let et: HTMLParagraphElement = (document.getElementById('pymt-status-txt') as HTMLParagraphElement);
-        et.innerHTML = this.formatStatus(rcpt);
-        for (status in statusNames) {
-            e.classList.remove(status);
-            et.classList.remove(status);
-        }
-        e.classList.add(status)
-        et.classList.add(status)
-        e.style.visibility = 'visible';
-    }    
-
     formatStatus(rcptObj: PymtStatusObj) {
         let dateString = new Date(rcptObj.date??Date.now()).toLocaleString();
         let dollarPrice: number = 9999;
@@ -81,10 +71,9 @@ export class NewPaymentForm extends React.Component<NewPaymentFormProps,NewPayme
         if (rcptObj.hasOwnProperty('price')) {
             dollarPrice= (rcptObj.price !== undefined)?(rcptObj.price/100):9999
         }
-        let truncatedVendorString = rcptObj?.vendorInfo?.substring(100);
-        const rcptText = `Thank you for ordering your historic plaque from the BAC! Your order number is ${rcptObj.orderId}, prepared on ${dateString}. The cost of this order was $ ${dollarPrice}. Please allow time for delivery, because we order them in groups of a minimum of three at a time to get a substantial discount. Encourage your friends and neighbors to get one, too -- this will speed things up! (And please keep these order details handy for future reference. vendorinfo: ${truncatedVendorString})`
-
-        const apologyText = `Oops! This is embarrassing. Something went wrong processing your payment. Perhaps you entered the wrong card info? Or maybe there was a glitch on our end. Here's the error message we got back: ${rcptObj.error}, and the reason: ${rcptObj.reason}. If you think the mistake was on our end, you can contact us at treasurer@brooklyn-neighborhood.org, and we can try and help you iron out the problem. (vendorinfo: ${rcptObj.vendorInfo})`
+        let truncatedVendorString = rcptObj?.vendorInfo?.substring(0,100);
+        const rcptText = `Thank you for ordering your historic plaque from the BAC! Your order number is ${rcptObj.orderId}, prepared on ${dateString}. The cost of this order was $ ${dollarPrice}. Please allow time for delivery, because we order them in groups of a minimum of three at a time to get a substantial discount. Encourage your friends and neighbors to get one, too -- this will speed things up! (And please keep these order details handy for future reference. payment processor info: ${truncatedVendorString})`
+        const apologyText = `Oops! This is embarrassing. Something went wrong processing your payment. Perhaps you entered the wrong card info? Or maybe there was a glitch on our end. Here's the error message we got back: ${rcptObj.error}, and the reason: ${rcptObj.reason}. If you think the mistake was on our end, you can contact us at treasurer@brooklyn-neighborhood.org, and we can try and help you iron out the problem. (payment processor info: ${rcptObj.vendorInfo})`
         if (undefined !== rcptObj.error) {
             return apologyText;
         }
@@ -109,10 +98,12 @@ export class NewPaymentForm extends React.Component<NewPaymentFormProps,NewPayme
                 
             rcpt.text().then(res => {
                 let rcptObj = JSON.parse(res);
-                this.displayPaymentResults('SUCCESS',rcptObj);
                 this.setState({
-                    pymtStatus: "paid"
+                    pymtStatus: "paid",
+                    alertText: this.formatStatus(rcptObj)
                 })
+                let mapForm = (document.getElementById('map-form') as HTMLDivElement);
+                mapForm.style.visibility = 'hidden'
             })
             console.debug('Payment Success');
         } catch(error) {
@@ -120,9 +111,10 @@ export class NewPaymentForm extends React.Component<NewPaymentFormProps,NewPayme
                 error: "payment processing failed",
                 reason: JSON.stringify(error),
             }
-            this.displayPaymentResults('FAILURE',statusObj);
+
             this.setState({
-                pymtStatus: "error"
+                pymtStatus: "error",
+                alertText: this.formatStatus(statusObj)
             })
         }
 
@@ -130,6 +122,19 @@ export class NewPaymentForm extends React.Component<NewPaymentFormProps,NewPayme
     }
     render() {
         let price = this?.state?.price;
+        if (this?.state?.pymtStatus === 'paid' || this?.state?.pymtStatus === 'error') {
+            let colorstatus: Color = this.state.pymtStatus==='paid'?'success':'error';
+            return( 
+                <div>
+                    <br></br>
+                    <br></br>
+                    <br></br>    
+                    <Alert color={colorstatus}>
+                        {this.state.alertText}
+                    </Alert>
+                </div>
+                )
+        }
         return (<div id="plaque-payment-form">
             <h3>Please provide us with payment details (current cost: ${price})</h3>
             <Accordion>
