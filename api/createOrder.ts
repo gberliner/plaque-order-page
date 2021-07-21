@@ -46,7 +46,7 @@ export default function createPlaqueOrder(req:Request, res:Response, next:NextFu
             if (rset.rowCount >= 1) {
                 plaqueCatalogId =rset.rows[0]?.objectid;
                 let intprice = rset.rows[0]?.price
-                base_price_money.amount = BigInt(intprice/100.)
+                base_price_money.amount = BigInt(intprice)
                 base_price_money.currency = 'USD'
             
                 const bodyOrderLineItems: Square.OrderLineItem[] = [];
@@ -85,7 +85,7 @@ export default function createPlaqueOrder(req:Request, res:Response, next:NextFu
                         try {
                             await pgClient.query(`insert into CustOrders(SqOrderId,CustEmail,CustAddr) values ('${sqNewOrderId}','${email}','${address}')`);
                             req.body["orderid"] = sqNewOrderId;
-                            req.body["price"] = base_price_money.amount.toLocaleString();
+                            req.body["price"] = base_price_money.amount.toString();
                         } catch (error) {
                             console.error(error?.message)
                             next("Failed to update table CustOrders: " + error?.message??" no further details available")

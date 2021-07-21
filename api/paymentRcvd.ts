@@ -22,7 +22,7 @@ export default function processPayment(req: Request,res: Response, next: NextFun
             sourceId: req.body.nonce,
             idempotencyKey: nanoid(),
             amountMoney: {
-                amount: BigInt(parseInt(req.body.price)),
+                amount: BigInt(parseInt(req.body.price)), // convert to cents for Square API!
                 currency: 'USD'
             },
             locationId: process.env.REACT_APP_LOCATION_ID,
@@ -53,7 +53,7 @@ export default function processPayment(req: Request,res: Response, next: NextFun
             }    
         }).catch(error => {
             console.error(error.message);
-            if (undefined !== error.xbody) {
+            if (undefined !== error.body) {
                 console.error(error.body);
             }
             next(`payment failed, error: ${error.message}`) 

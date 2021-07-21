@@ -17,14 +17,25 @@ type PymtStatusObj = {
 type NewPaymentFormProps = {
 
 }
+
+type PaymentStatus = "unpaid"|"error"|"paid"
+
 type NewPaymentFormState = {
     price: number;
+    pymtStatus: PaymentStatus;
 }
+
+enum statusEnum {
+    FAILED,SUCCESS
+}
+let statusNames = ['FAILED','SUCCESS']
+
 export class NewPaymentForm extends React.Component<NewPaymentFormProps,NewPaymentFormState> {
     constructor(props: NewPaymentFormProps) {
         super(props);
         this.setState({
-            price: 9999
+            price: 9999,
+            pymtStatus: "unpaid"
         })
         this.cardTokenizeResponseReceived = this.cardTokenizeResponseReceived.bind(this)
         this.displayPaymentResults = this.displayPaymentResults.bind(this)
@@ -37,8 +48,8 @@ export class NewPaymentForm extends React.Component<NewPaymentFormProps,NewPayme
                 res.json().then(pricedata=>
                     this.setState(
                         {
-                            price: pricedata.price
-                  
+                            price: pricedata.price,
+                            pymtStatus: "unpaid"
                         }
                     )
                 ).catch(error => {
@@ -52,19 +63,29 @@ export class NewPaymentForm extends React.Component<NewPaymentFormProps,NewPayme
 
     displayPaymentResults(status: string, rcpt: PymtStatusObj) {
         let e: HTMLDivElement = document.getElementById('pymt-status-msg') as HTMLDivElement        
-        e?.classList.add(status)
         let et: HTMLParagraphElement = (document.getElementById('pymt-status-txt') as HTMLParagraphElement);
-        e.innerHTML = this.formatStatus(rcpt);
+        et.innerHTML = this.formatStatus(rcpt);
+        for (status in statusNames) {
+            e.classList.remove(status);
+            et.classList.remove(status);
+        }
+        e.classList.add(status)
+        et.classList.add(status)
         e.style.visibility = 'visible';
     }    
 
     formatStatus(rcptObj: PymtStatusObj) {
         let dateString = new Date(rcptObj.date??Date.now()).toLocaleString();
+        let dollarPrice: number = 9999;
 
-        const rcptText = `Thank you for ordering your historic plaque from the BAC! Your order number is ${rcptObj.orderId}, prepared on ${dateString}. The cost of this order was ${rcptObj.price}. Please allow time for delivery, because we order them in groups of a minimum of three at a time to get a substantial discount. Encourage your friends and neighbors to get one, too -- this will speed things up! (And please keep these order details handy for future reference. vendorinfo: ${rcptObj.vendorInfo})`
+        if (rcptObj.hasOwnProperty('price')) {
+            dollarPrice= (rcptObj.price !== undefined)?(rcptObj.price/100):9999
+        }
+        let truncatedVendorString = rcptObj?.vendorInfo?.substring(100);
+        const rcptText = `Thank you for ordering your historic plaque from the BAC! Your order number is ${rcptObj.orderId}, prepared on ${dateString}. The cost of this order was $ ${dollarPrice}. Please allow time for delivery, because we order them in groups of a minimum of three at a time to get a substantial discount. Encourage your friends and neighbors to get one, too -- this will speed things up! (And please keep these order details handy for future reference. vendorinfo: ${truncatedVendorString})`
 
         const apologyText = `Oops! This is embarrassing. Something went wrong processing your payment. Perhaps you entered the wrong card info? Or maybe there was a glitch on our end. Here's the error message we got back: ${rcptObj.error}, and the reason: ${rcptObj.reason}. If you think the mistake was on our end, you can contact us at treasurer@brooklyn-neighborhood.org, and we can try and help you iron out the problem. (vendorinfo: ${rcptObj.vendorInfo})`
-        if (undefined === rcptObj.error) {
+        if (undefined !== rcptObj.error) {
             return apologyText;
         }
         return rcptText;
@@ -72,7 +93,7 @@ export class NewPaymentForm extends React.Component<NewPaymentFormProps,NewPayme
 
     async cardTokenizeResponseReceived(tokenObj: TokenResult) {
         let address = (document.getElementById('addr-value') as HTMLInputElement)?.value;
-        let email = (document.getElementById('email') as HTMLInputElement)?.value;
+        let email = (document.getElementById('eml') as HTMLInputElement)?.value;
         let payload = {
             nonce: tokenObj.token,
             address,
@@ -84,11 +105,14 @@ export class NewPaymentForm extends React.Component<NewPaymentFormProps,NewPayme
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(payload)
-            }
-            )     
+            })
+                
             rcpt.text().then(res => {
                 let rcptObj = JSON.parse(res);
                 this.displayPaymentResults('SUCCESS',rcptObj);
+                this.setState({
+                    pymtStatus: "paid"
+                })
             })
             console.debug('Payment Success');
         } catch(error) {
@@ -97,6 +121,9 @@ export class NewPaymentForm extends React.Component<NewPaymentFormProps,NewPayme
                 reason: JSON.stringify(error),
             }
             this.displayPaymentResults('FAILURE',statusObj);
+            this.setState({
+                pymtStatus: "error"
+            })
         }
 
         return;
