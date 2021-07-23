@@ -97,13 +97,37 @@ export class NewPaymentForm extends React.Component<NewPaymentFormProps,NewPayme
             })
                 
             rcpt.text().then(res => {
-                let rcptObj = JSON.parse(res);
-                this.setState({
-                    pymtStatus: "paid",
-                    alertText: this.formatStatus(rcptObj)
-                })
-                let mapForm = (document.getElementById('map-form') as HTMLDivElement);
-                mapForm.style.visibility = 'hidden'
+                try {
+                    let rcptObj = JSON.parse(res);
+                    this.setState({
+                        pymtStatus: "paid",
+                        alertText: this.formatStatus(rcptObj)
+                    })
+                    let mapForm = (document.getElementById('map-form') as HTMLDivElement);
+                    mapForm.style.visibility = 'hidden'
+                } catch (error) {
+                    try {
+                        let errorObj = JSON.parse(error);
+                        if (errorObj.hasOwnProperty("detail")) {
+                            this.setState({
+                                pymtStatus: 'error',
+                                alertText: `Payment processing failed with message: ${errorObj?.detail}`
+                            })
+                        }
+                        this.setState({
+                            pymtStatus: "error",
+                            alertText: "Unexpected response from server! Sorry, maybe it's a network or other hardware issue. Please try again later"              
+                        })
+                    } catch (error) {
+                        this.setState(
+                            {
+                                pymtStatus: "error",
+                                alertText: "Unexpected response from server! Sorry, maybe it's a temporary network glitch. Please try later."
+                            }
+                        )
+                    }
+
+                }
             })
             console.debug('Payment Success');
         } catch(error) {

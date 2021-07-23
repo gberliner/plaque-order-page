@@ -69,15 +69,25 @@ export default function processPayment(req: Request,res: Response, next: NextFun
             console.error(error.message);
             if (undefined !== error.body) {
                 console.error(error.body);
+                //avoid error statuses if we can
+                res.statusCode = 200;
+                next(error.body);
+            } else {
+                next(`payment failed, error: ${error.message}`)
             }
-            next(`payment failed, error: ${error.message}`) 
         });
     } catch (error) {
         console.error(error.message);
         if (undefined !== error.body) {
             console.error(error.body);
+            // avoid error status if we have still something useful to say
+            // otherwise, it seems too likely to get "lost"
+            res.statusCode = 200;
+            next(error.body)
+        } else {
+            next(error)
         }
-        next(error)
+
     }
     return((void(null) as unknown) as RequestHandler<Request,Response>);
 
