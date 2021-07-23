@@ -1,5 +1,5 @@
 {
-  "name": "generic-react-app3",
+  "name": "plaque-order-page",
   "version": "0.1.0",
   "private": true,
   "proxy": "http://localhost:8080",
@@ -49,7 +49,7 @@
   "scripts": {
     "start": "concurrently \"npm run start-backend\" \"npm run start-frontend\"",
     "start-frontend": "react-scripts start",
-    "start-backend": "node --es-module-specifier-resolution=node server.js",
+    "start-backend": "npm run build-api && node --es-module-specifier-resolution=node server.js",
     "build": "react-scripts build && npm run build-api",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
