@@ -33,13 +33,26 @@ export default function createPlaqueOrder(req:Request, res:Response, next:NextFu
     let reqData: Req = req.body;
     let email = reqData?.email;
     let address = reqData?.address;
-    let client = new Square.Client(
-        {
-            customUrl: "https://connect.squareupsandbox.com",
-            environment: process.env.NODE_ENV === "production"?Square.Environment.Production:Square.Environment.Sandbox,
-            accessToken: process.env.SQUARE_ACCESS_TOKEN
-        }
-    )
+    let clientEnvironmentSandbox = {
+        accessToken: process.env.SQUARE_ACCESS_TOKEN,
+        environment: Square.Environment.Sandbox,
+        customUrl: "https://connect.squareupsandbox.com"
+    }
+    let clientEnvironmentProduction = {
+        accessToken: process.env.SQUARE_ACCESS_TOKEN,
+        environment: Square.Environment.Production
+    }
+    let clientEnvironment;
+    clientEnvironment = clientEnvironmentSandbox;
+ 
+    if (process.env.NODE_ENV === "production") {
+        clientEnvironment = clientEnvironmentProduction;
+    }
+    if (process.env?.STAGING === "true") {
+        clientEnvironment = clientEnvironmentProduction;
+    }
+    let client = new Square.Client(clientEnvironment);
+
     pgClient.connect();
     pgClient.query(`select ObjectId,price from SalesCatalog where name='${catalogItemName}'`).then(
         async (rset) => {

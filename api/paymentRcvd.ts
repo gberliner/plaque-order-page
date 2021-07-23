@@ -15,7 +15,9 @@ export default function processPayment(req: Request,res: Response, next: NextFun
         if (process.env.NODE_ENV === "production") {
             url = 'https://connect.squareup.com/v2/payments'
         }
-        
+        if (process.env?.STAGING === "true") {
+            url = 'https://connect.squareupsandbox.com/v2/payments'
+        }    
         let pymt = new Payment();
         //let pymtreq = new CreatePaymentRequest();
         let pymtreq: Square.CreatePaymentRequest = {
@@ -30,14 +32,26 @@ export default function processPayment(req: Request,res: Response, next: NextFun
         }
         let apiClient = new ApiClient();
         
-        let client = new Square.Client(
-            {
-                customUrl: "https://connect.squareupsandbox.com",
-                environment: process.env.NODE_ENV === "production"?Square.Environment.Production:Square.Environment.Sandbox,
-                accessToken: process.env.SQUARE_ACCESS_TOKEN
-            }
-        )
-
+        let clientEnvironmentSandbox = {
+            accessToken: process.env.SQUARE_ACCESS_TOKEN,
+            environment: Square.Environment.Sandbox,
+            customUrl: "https://connect.squareupsandbox.com"
+        }
+        let clientEnvironmentProduction = {
+            accessToken: process.env.SQUARE_ACCESS_TOKEN,
+            environment: Square.Environment.Production
+        }
+        let clientEnvironment;
+        clientEnvironment = clientEnvironmentSandbox;
+     
+        if (process.env.NODE_ENV === "production") {
+            clientEnvironment = clientEnvironmentProduction;
+        }
+        if (process.env?.STAGING === "true") {
+            clientEnvironment = clientEnvironmentProduction;
+        }
+        let client = new Square.Client(clientEnvironment);
+    
         const paymentsApi = client.paymentsApi;
         
         paymentsApi.createPayment(pymtreq).then(pymtRes => {
