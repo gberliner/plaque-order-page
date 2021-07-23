@@ -14,7 +14,7 @@ type Res = {
 }
 //export default void function paymentRcvd  (req: Request,res: Response) : ExpressHandler<Request,Response> {        
 export default function checkPrice(req: Request, res: Response, next: NextFunction): RequestHandler<Request,Response,NextFunction> {
-    let connectionString = process.env.DATABASE_URI;
+    let connectionString = process.env.DATABASE_URL;
     let productName = "Regular Plaque"
     let pgClient = new pg.Client({
         connectionString,

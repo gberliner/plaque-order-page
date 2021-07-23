@@ -24,7 +24,7 @@ export default function createPlaqueOrder(req:Request, res:Response, next:NextFu
     };
     let catalogItemName = "Regular Plaque"
     let pgClient = new pg.Client({
-        connectionString: process.env.DATABASE_URI,
+        connectionString: process.env.DATABASE_URL,
         ssl: {
           rejectUnauthorized: false
         }
