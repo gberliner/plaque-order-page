@@ -1,6 +1,9 @@
-# Getting Started with Create React App
+# simple order form, wired up to square and sendgrid, for processing payments and sending customer and other email updates
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+
+It is designed to run on heroku using their free tier, together with the freely bundled postgresql database provided by them there.
+A good, fast way to test this out is to acquire suitable api keys for square and twilio sendgrid and set them as environment variables in a convenient developement environment like gitpod.
 
 ## Available Scripts
 
