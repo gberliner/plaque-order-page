@@ -1,3 +1,2 @@
-web: npm run start-backend
-web: npm run start-frontend
+web: npm start
 worker: npm run worker
