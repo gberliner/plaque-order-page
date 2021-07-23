@@ -14,7 +14,7 @@ app.get('/ping', function (req, res) {
 
 app.post('/api/process-payment', createPlaqueOrder, processPayment);
 app.get('/api/check-price', checkPrice);
-app.get('*', (request, response) => {
+app.get('/*', (request, response) => {
 	response.sendFile(path.join(import.meta.url, 'build', 'index.html'));
 });
 app.listen(process.env.NODE_ENV === "production" ? parseInt(process?.env?.PORT as string): 8080);
