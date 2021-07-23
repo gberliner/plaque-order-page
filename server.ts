@@ -12,4 +12,4 @@ app.get('/ping', function (req, res) {
 
 app.post('/api/process-payment', createPlaqueOrder, processPayment);
 app.get('/api/check-price', checkPrice);
-app.listen(process.env.NODE_ENV === "production" ? parseInt(process.env.PORT): 8080);
+app.listen(process.env.NODE_ENV === "production" ? parseInt(process?.env?.PORT): 8080);
