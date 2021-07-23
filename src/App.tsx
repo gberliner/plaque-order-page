@@ -1,7 +1,5 @@
-import logo from './logo.svg';
 import './App.css';
 import {MapWithPlaceholder} from './map'
-import {PaymentPage} from './PaymentPage'
 import { NewPaymentForm } from './NewPaymentForm';
 
 import 'leaflet/dist/leaflet.css';

@@ -2,9 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
-import {PaymentPage} from './PaymentPage'
 import reportWebVitals from './reportWebVitals';
-import {MapWithPlaceholder} from './map'
 import 'react-square-payment-form/lib/default.css'
 ReactDOM.render(
   <React.StrictMode>

@@ -2,12 +2,7 @@
   "name": "plaque-order-page",
   "version": "0.1.0",
   "private": true,
-  "proxy": {
-    "/api": {
-      "target": "https://localhost:8080",
-      "secure": false
-    }
-  },
+  "proxy": "http://localhost:8080",
   "type": "module",
   "dependencies": {
     "@derhuerst/query-overpass": "^2.0.0",
@@ -50,9 +45,9 @@
     "web-vitals": "^1.1.2"
   },
   "scripts": {
-    "start": "concurrently \"npm run start-backend\" \"npm run start-frontend\"",
-    "start-frontend": "react-scripts start",
-    "start-backend": "npm run build-api && node --es-module-specifier-resolution=node server.js",
+    "start": "if [ ${NODE_ENV} = \"sandbox\" ]; then concurrently \"npm run start-backend\" \"npm run start-frontend\"; else npm run start-frontend; fi",
+    "start-frontend": "if [ ${NODE_ENV} = \"production\" ]; then node --es-module-specifier-resolution=node server.js;  else react-scripts start; fi",
+    "start-backend": "npm run build && if [ ${NODE_ENV} = \"production\" ]; then npm run start-frontend; else node --es-module-specifier-resolution=node server.js; fi",
     "build": "react-scripts build && npm run build-api",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
