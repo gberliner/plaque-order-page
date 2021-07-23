@@ -4,7 +4,7 @@ import processPayment from './api/paymentRcvd.js';
 import {createPlaqueOrder} from './api/createOrder';
 import {checkPrice} from './api/checkPrice';
 import { fileURLToPath } from 'url';
-
+//@ts-ignore
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express();
