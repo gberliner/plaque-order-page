@@ -6,7 +6,6 @@
   "type": "module",
   "dependencies": {
     "@derhuerst/query-overpass": "^2.0.0",
-    "@fontsource/roboto": "^4.5.0",
     "@material-ui/core": "^4.12.1",
     "@material-ui/icons": "^4.11.2",
     "@material-ui/lab": "^4.0.0-alpha.60",
@@ -36,7 +35,6 @@
     "react": "^17.0.1",
     "react-dom": "^17.0.2",
     "react-leaflet": "3.1.0",
-    "react-native-square-in-app-payments": "^1.5.0",
     "react-scripts": "4.0.3",
     "react-square-payment-form": "^0.7.2",
     "react-square-web-payments-sdk": "^1.5.1",
@@ -75,5 +73,8 @@
   },
   "devDependencies": {
     "dotenv": "^8.2.0"
+  },
+  "engines": {
+    "node": ">=15.7.0"
   }
 }
