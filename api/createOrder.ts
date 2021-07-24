@@ -49,7 +49,7 @@ export default function createPlaqueOrder(req:Request, res:Response, next:NextFu
         clientEnvironment = clientEnvironmentProduction;
     }
     if (process.env?.STAGING === "true") {
-        clientEnvironment = clientEnvironmentProduction;
+        clientEnvironment = clientEnvironmentSandbox;
     }
     let client = new Square.Client(clientEnvironment);
 
