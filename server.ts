@@ -1,6 +1,7 @@
 import express from 'express';
 import path from 'path';
-import processPayment from './api/paymentRcvd.js';
+import processPayment from './api/paymentRcvd';
+import {handlePaymentErrors} from './api/handlePaymentErrors';
 import {createPlaqueOrder} from './api/createOrder';
 import {checkPrice} from './api/checkPrice';
 import { fileURLToPath } from 'url';
@@ -24,4 +25,5 @@ app.get('/', (request, response) => {
 app.get('/*', (request, response) => {
 	response.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
+app.use(handlePaymentErrors);
 app.listen(process.env.NODE_ENV === "production" ? parseInt(process?.env?.PORT as string): 8080);

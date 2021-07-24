@@ -48,7 +48,7 @@ export default function processPayment(req: Request,res: Response, next: NextFun
             clientEnvironment = clientEnvironmentProduction;
         }
         if (process.env?.STAGING === "true") {
-            clientEnvironment = clientEnvironmentProduction;
+            clientEnvironment = clientEnvironmentSandbox;
         }
         let client = new Square.Client(clientEnvironment);
     
@@ -69,9 +69,11 @@ export default function processPayment(req: Request,res: Response, next: NextFun
             console.error(error.message);
             if (undefined !== error.body) {
                 console.error(error.body);
-                //avoid error statuses if we can
-                res.statusCode = 200;
-                next(error.body);
+                res.statusCode = 401;
+                res.setHeader("Content-Type","application/json")
+                let newerrorbody = error.body.replace("^\"","\"$",'')
+                
+                res.send(newerrorbody);
             } else {
                 next(`payment failed, error: ${error.message}`)
             }
@@ -80,10 +82,10 @@ export default function processPayment(req: Request,res: Response, next: NextFun
         console.error(error.message);
         if (undefined !== error.body) {
             console.error(error.body);
-            // avoid error status if we have still something useful to say
-            // otherwise, it seems too likely to get "lost"
-            res.statusCode = 200;
-            next(error.body)
+            res.statusCode = 401;
+            res.setHeader("Content-Type","application/json")
+            let newerrorbody = error.body.replace("^\"","\"$",'')
+            res.send(newerrorbody);
         } else {
             next(error)
         }

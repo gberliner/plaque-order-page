@@ -7,13 +7,14 @@ import {Alert,Color} from '@material-ui/lab';
 
 const applicationId = process.env.REACT_APP_APPLICATION_ID
 const locationId = process.env.REACT_APP_LOCATION_ID;
-
+type VendorErrors =  { [k in string]: any  }[]
 type PymtStatusObj = {
     orderId?: string;
     price?: number;
     date?: Date;
     vendorInfo?: string;
     error?: string;
+    errors?: VendorErrors;
     reason?: string;
 }
 type NewPaymentFormProps = {
@@ -73,8 +74,11 @@ export class NewPaymentForm extends React.Component<NewPaymentFormProps,NewPayme
         }
         let truncatedVendorString = rcptObj?.vendorInfo?.substring(0,100);
         const rcptText = `Thank you for ordering your historic plaque from the BAC! Your order number is ${rcptObj.orderId}, prepared on ${dateString}. The cost of this order was $ ${dollarPrice}. Please allow time for delivery, because we order them in groups of a minimum of three at a time to get a substantial discount. Encourage your friends and neighbors to get one, too -- this will speed things up! (And please keep these order details handy for future reference. payment processor info: ${truncatedVendorString})`
-        const apologyText = `Oops! This is embarrassing. Something went wrong processing your payment. Perhaps you entered the wrong card info? Or maybe there was a glitch on our end. Here's the error message we got back: ${rcptObj.error}, and the reason: ${rcptObj.reason}. If you think the mistake was on our end, you can contact us at treasurer@brooklyn-neighborhood.org, and we can try and help you iron out the problem. (payment processor info: ${rcptObj.vendorInfo})`
-        if (undefined !== rcptObj.error) {
+        if (undefined !== rcptObj.errors) {
+            let vendorinfo = JSON.stringify(rcptObj?.errors).substring(0,100);
+            let detail = rcptObj?.errors[0].hasOwnProperty("detail")?(rcptObj?.errors[0]?.detail):"unknown";
+            const apologyText = `Oops! This is embarrassing. Something went wrong processing your payment. Perhaps you entered the wrong card info? Or maybe there was a glitch on our end. Here's the detail message we got back: ${detail}. If you think the mistake was on our end, you can contact us at treasurer@brooklyn-neighborhood.org, and we can try and help you iron out the problem. (payment processor info: ${vendorinfo} )`
+
             return apologyText;
         }
         return rcptText;
@@ -83,6 +87,7 @@ export class NewPaymentForm extends React.Component<NewPaymentFormProps,NewPayme
     async cardTokenizeResponseReceived(tokenObj: TokenResult) {
         let address = (document.getElementById('addr-value') as HTMLInputElement)?.value;
         let email = (document.getElementById('eml') as HTMLInputElement)?.value;
+        let success = true;
         let payload = {
             nonce: tokenObj.token,
             address,
@@ -95,12 +100,18 @@ export class NewPaymentForm extends React.Component<NewPaymentFormProps,NewPayme
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(payload)
             })
-                
+            if (rcpt.status > 299) {
+                success = false;
+            }    
             rcpt.text().then(res => {
                 try {
                     let rcptObj = JSON.parse(res);
+
+                    if (undefined !== rcptObj?.errors?.detail) {
+                        rcptObj["detail"] = rcptObj?.errors?.detail;
+                    }
                     this.setState({
-                        pymtStatus: "paid",
+                        pymtStatus: success?"paid":"error",
                         alertText: this.formatStatus(rcptObj)
                     })
                     let mapForm = (document.getElementById('map-form') as HTMLDivElement);
