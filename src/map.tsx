@@ -1,5 +1,5 @@
 import {MapContainer, TileLayer,Marker,Popup,PopupProps,useMap, useMapEvents} from 'react-leaflet';
-import {LatLng, latLng, LatLngBoundsExpression, LatLngExpression, LatLngTuple, Map} from 'leaflet'
+import {LatLng, latLng, LatLngBoundsExpression, LatLngExpression, LatLngTuple, Map, Icon} from 'leaflet'
 import React,{useState} from 'react'
 import { Button,TextField } from '@material-ui/core';
 // tslint:disable-next-line
@@ -68,7 +68,16 @@ function SetLocationMarker() {
   if (null !== position) {
     (document.getElementById('addr-value') as HTMLInputElement).value = address;
     return(
-      <Marker position={position as unknown as LatLngExpression}>
+      <Marker 
+      icon={new Icon({
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+      })}
+      position={position as unknown as LatLngExpression}>
         <Popup>{address!==""?"are you here?: " + address:""} </Popup>
       </Marker>
     );
