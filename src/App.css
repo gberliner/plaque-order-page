@@ -37,7 +37,7 @@
   }
 }
 
-.leaflet-container { width: 66%; height: 20vh; margin-left: auto; margin-right: auto;}
+.leaflet-container { width: 66%; height: 40vh; margin-left: auto; margin-right: auto;}
 
 .SUCCESS {
   color: green;

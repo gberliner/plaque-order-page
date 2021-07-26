@@ -2,7 +2,6 @@ import './App.css';
 import {MapWithPlaceholder} from './map'
 import { NewPaymentForm } from './NewPaymentForm';
 
-import 'leaflet/dist/leaflet.css';
 import React from 'react';
 
 type PlaqueAppState = {

@@ -1,10 +1,120 @@
-import {MapContainer, TileLayer} from 'react-leaflet';
-import {LatLngBoundsExpression} from 'leaflet'
-import React from 'react'
-import { TextField } from '@material-ui/core';
+import {MapContainer, TileLayer,Marker,Popup,PopupProps,useMap, useMapEvents} from 'react-leaflet';
+import {LatLng, latLng, LatLngBoundsExpression, LatLngExpression, LatLngTuple, Map} from 'leaflet'
+import React,{useState} from 'react'
+import { Button,TextField } from '@material-ui/core';
 // tslint:disable-next-line
 //@ts-ignore
 import queryOverpass from '@derhuerst/query-overpass'
+import {overpass,OverpassBbox,OverpassElement,OverpassWay,OverpassResponse,OverpassJson} from 'overpass-ts'
+import {Alert} from '@material-ui/lab'
+import 'leaflet/dist/leaflet.css';
+
+function formatAddressQueryResultsSetHtmlElement(results: OverpassJson) {
+  let addrCity;
+  let addrNumber;
+  let addrStreet;
+  let address: string;
+  for(let k=0; k<results.elements.length;k++) {
+    let element = results.elements[k];
+    if (element.type !== "way") {
+      continue;
+    } else {
+      addrCity = element?.tags?.hasOwnProperty("addr:city") ? " " + element.tags["addr:city"] : ""
+      addrNumber = element?.tags?.hasOwnProperty("addr:housenumber") ? element.tags["addr:housenumber"] : ""
+      addrStreet = element?.tags?.hasOwnProperty("addr:street") ? " " + element.tags["addr:street"] : ""
+      address = addrNumber
+      address = address.concat(addrStreet, addrCity)
+      if ("" !== address) {
+        return address;
+      }
+    }
+  }
+  return "";
+}
+
+function SetLocationMarker() {
+  let initialPosition: LatLngExpression= [0,0];
+  const [position, setPosition] = useState(null);
+  const [firstRun,setFirstRun] = useState(true);
+  let mapInstance = useMap();
+  const [address, setAddress] = useState("");
+  async function setAddressFromOverpassQuery (latLng:LatLng,setterFunc: (newstring:string)=>void) {
+    try {
+      let query =`[out:json];nwr(around:10,${latLng.lat},${latLng.lng});out body;`
+      let results = await overpass(query) as OverpassJson;
+      setterFunc(formatAddressQueryResultsSetHtmlElement(results));                         
+      console.log("overpass query returned address: " + address);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  
+  useMapEvents({
+    click: async (event)=>{
+      if (firstRun) {
+        setFirstRun(false)
+        mapInstance.locate()
+      } else {
+        setPosition(event.latlng as any)
+        setAddressFromOverpassQuery(event.latlng,setAddress)
+      }
+    },
+    locationfound: (event)=>{
+      setPosition(event.latlng as any)
+      setAddressFromOverpassQuery(event.latlng,setAddress)
+      mapInstance.flyTo(event.latlng, mapInstance.getZoom())
+    }
+  })
+  if (null !== position) {
+    (document.getElementById('addr-value') as HTMLInputElement).value = address;
+    return(
+      <Marker position={position as unknown as LatLngExpression}>
+        <Popup>{address!==""?"are you here?: " + address:""} </Popup>
+      </Marker>
+    );
+  } else {
+    return null;
+  }
+}
+
+type voidfunc = ()=>{}
+type LocationMarkerState = {
+    position: LatLngExpression|null;
+    firstClick: boolean;
+    parentComponent: MapWithPlaceholder;
+    address: string;
+}
+type LocationMarkerProps = {
+  parentComponent: MapWithPlaceholder;
+}
+class LocationMarker extends React.Component<LocationMarkerProps, LocationMarkerState> {
+  constructor(props: LocationMarkerProps) {
+    super(props)
+    this.setState({
+      position: null,
+      firstClick: true,
+      parentComponent: props.parentComponent
+    })
+  }
+  
+
+  render() {
+    try {
+      let latLng = this?.state?.position as LatLngExpression;
+      return this?.state?.position === null ? null : (
+        <Marker position={latLng}>
+          <Popup>are you here?: {this?.state?.address} </Popup>
+        </Marker>
+      )
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+}
+
+
+
 
 function MapPlaceholder() {
     return (
@@ -16,18 +126,33 @@ function MapPlaceholder() {
   }
   //        center={[51.505, -0.09]}
   type MapState = {
+    addressNotFound: boolean;
+    overpassError: boolean;
+    overpassErrorMsg: string;
+    address: string;
+    map: Map;
+    isAddressNotFound: ()=>boolean;
 
+  }
+  type MapWithPlaceholderProps = {
   }
   const mybounds: LatLngBoundsExpression = [[45.48965204000928,-122.66239643096925],[45.50168487047437,-122.63664722442628]];
   export class MapWithPlaceholder extends React.Component<{},MapState> {
     constructor(props: {}) {
       super(props);
+      this.setState({
+        addressNotFound: false,
+        overpassError: false,
+      })
+
       this.verifyAddress = this.verifyAddress.bind(this);
+    
     }
 
     async verifyAddress() {
       let addr = (document.getElementById('addr-value') as HTMLInputElement).value;
-      let addrregex = /^([0-9]+)\s+(?:(?:SE)|(?:Southeast))\s+(.*)/i;
+      let addrregex = /^([0-9]+)\s+(?:(?:SE)|(?:Southeast))\s+([^\s]+).*/i;
+
       let parsedAddress = addr.match(addrregex);
       if (parsedAddress !== null && parsedAddress.length === 3) {
         var houseNumber = parsedAddress[1];
@@ -50,10 +175,9 @@ function MapPlaceholder() {
             }            
           } else {
             console.log("No such address found in Portland");
-            if (null !== addressNotFound) {
-              addressNotFound.style.visibility = "visible";
-            }
-       
+            this.setState({
+              addressNotFound: true
+            })
             if (null !== pymtForm) {
               pymtForm.style.visibility = "hidden"
             }
@@ -63,72 +187,72 @@ function MapPlaceholder() {
           if (null !== pymtForm){
             pymtForm.style.visibility = "hidden";
           }
-          if (null !== addressNotFound) {
-            addressNotFound.style.visibility = "visible";            
-          }   
-          let errorDivElement: HTMLDivElement;    
-          if (null !== overpassError) {
-            errorDivElement = overpassError as HTMLDivElement;
-            let errorMsgElement: HTMLParagraphElement= (document.getElementById("overpass-error-message") as HTMLParagraphElement);
-            errorMsgElement.innerText += ": " + error.message
-            errorDivElement.style.visibility = 'visible'
-
-          }
+          this.setState({
+            overpassError: true,
+            overpassErrorMsg: error?.message
+          })
         }
       }
     }
 
-  render() {
-    return (
-      <div>
-        <MapContainer
-          bounds={mybounds}
-          zoom={13}
-          scrollWheelZoom={false}
-          placeholder={<MapPlaceholder />}>
-          <TileLayer
-            attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-        </MapContainer>
-        <div id='map-form'>
-        <div id="overpass-error">
-          <p id="overpass-error-message">Error connecting to Overpass server, try again</p>
-        </div>
-        <h3 id="plaque-request-header">I want to order an historic plaque for:</h3>
-        <div className="blue"><p id="address-not-found">Sorry, that address was not found in Brooklyn</p></div>
-
-        <form id="address-form">
-          
-        <div className="float-container">
-
-<div className="float-child-left">
-  <div className="green">
-  
-<TextField 
-              id="addr-value"
-              label="Street address of your historic Brooklyn home"
-              variant="filled"
-              helperText="Required">
-            </TextField>
-  </div>
-</div>
-
-<div className="float-child-right">
-<button id="verify-address" type="button" onClick={this.verifyAddress}>Verify</button>
-
-</div>
-
-</div>
-
-          <br></br>
-          <div id="address-container"></div>
-        </form>
-        
-  
-        </div>
-      </div>
-    )
+    render() {
+ 
+        return (
+          <div>
+            <MapContainer
+              bounds={mybounds}
+              zoom={13}
+              scrollWheelZoom={false}
+              whenCreated={(map)=>{
+                this.setState({
+                  map: map
+                })
+              }}
+              whenReady={()=>{
+                console.log("This function will fire once the map is created")
+              }}
+              placeholder={<MapPlaceholder />}>
+              <TileLayer
+                attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              <SetLocationMarker></SetLocationMarker>
+            </MapContainer>
+            <div id='map-form'>
+    
+              <h3 id="plaque-request-header">I want to order an historic plaque for:</h3>
+    
+              <form id="address-fo  rm">
+    
+                <div className="float-container">
+    
+                  <div className="float-child-left">
+                    <div className="green">
+    
+                      <TextField
+                        id="addr-value"
+                        label="Street address of your historic Brooklyn home"
+                        variant="filled"
+                        helperText="Required">
+                      </TextField>
+                    </div>
+                  </div>
+    
+                  <div className="float-child-right">
+                    <button id="verify-address" type="button" onClick={this.verifyAddress}>Verify</button>
+    
+                  </div>
+    
+                </div>
+    
+                <br></br>
+                <div id="address-container"></div>
+              </form>
+    
+    
+            </div>
+          </div>
+        )
   }
 }
 
