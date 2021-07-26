@@ -69,7 +69,7 @@ function SetLocationMarker() {
     (document.getElementById('addr-value') as HTMLInputElement).value = address;
     return(
       <Marker 
-      icon={new Icon({
+      icon={new Icon({//todo: change these to local assets
         iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
         shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
         iconSize: [25, 41],
