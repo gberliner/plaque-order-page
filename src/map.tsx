@@ -1,7 +1,7 @@
 import {MapContainer, TileLayer,Marker,Popup,PopupProps,useMap, useMapEvents} from 'react-leaflet';
 import {LatLng, latLng, LatLngBoundsExpression, LatLngExpression, LatLngTuple, Map, Icon} from 'leaflet'
 import React,{useState} from 'react'
-import { Button,TextField } from '@material-ui/core';
+import { TextField } from '@material-ui/core';
 // tslint:disable-next-line
 //@ts-ignore
 import queryOverpass from '@derhuerst/query-overpass'
@@ -205,7 +205,7 @@ function MapPlaceholder() {
     }
 
     render() {
- 
+       
         return (
           <div>
             <MapContainer
@@ -227,39 +227,6 @@ function MapPlaceholder() {
               />
               <SetLocationMarker></SetLocationMarker>
             </MapContainer>
-            <div id='map-form'>
-    
-              <h3 id="plaque-request-header">I want to order an historic plaque for:</h3>
-    
-              <form id="address-fo  rm">
-    
-                <div className="float-container">
-    
-                  <div className="float-child-left">
-                    <div className="green">
-    
-                      <TextField
-                        id="addr-value"
-                        label="Street address of your historic Brooklyn home"
-                        variant="filled"
-                        helperText="Required">
-                      </TextField>
-                    </div>
-                  </div>
-    
-                  <div className="float-child-right">
-                    <button id="verify-address" type="button" onClick={this.verifyAddress}>Verify</button>
-    
-                  </div>
-    
-                </div>
-    
-                <br></br>
-                <div id="address-container"></div>
-              </form>
-    
-    
-            </div>
           </div>
         )
   }

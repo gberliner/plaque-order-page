@@ -1,7 +1,7 @@
 import React, {} from 'react'
 import {SquarePaymentsForm,CreditCardInput,} from 'react-square-web-payments-sdk';
 import {TokenResult} from '@square/web-sdk'
-import {Accordion, AccordionDetails, AccordionSummary,TextField} from '@material-ui/core'
+import {Accordion, AccordionDetails, AccordionSummary,TextField, Dialog} from '@material-ui/core'
 import { ExpandMore } from '@material-ui/icons';
 import {Alert,Color} from '@material-ui/lab';
 
@@ -170,101 +170,101 @@ export class NewPaymentForm extends React.Component<NewPaymentFormProps,NewPayme
                 </div>
                 )
         }
-        return (<div id="plaque-payment-form">
-            <h3>Please provide us with payment details (current cost: ${price})</h3>
-            <Accordion>
-                <AccordionSummary
-                    expandIcon={<ExpandMore />}
-                    aria-label="Expand"
-                    aria-controls="billing-address"
-                    id="billing-address-header">
-                    Billing address and phone number
+        return (
+                <div id="plaque-payment-form">
+                    <h3>Please provide us with payment details (current cost: ${price})</h3>
+                    <Accordion>
+                        <AccordionSummary
+                            expandIcon={<ExpandMore />}
+                            aria-label="Expand"
+                            aria-controls="billing-address"
+                            id="billing-address-header">
+                            Billing address and phone number
 
 
-                </AccordionSummary>
-                <AccordionDetails>
-                    <fieldset id="first-and-last-name">
-                        <TextField
-                            id="buyerFirstName"
-                            label="First name"
-                            variant="filled"
-                            helperText="Required">
-                        </TextField>
+                        </AccordionSummary>
+                        <AccordionDetails>
+                            <fieldset id="first-and-last-name">
+                                <TextField
+                                    id="buyerFirstName"
+                                    label="First name"
+                                    variant="filled"
+                                    helperText="Required">
+                                </TextField>
 
-                        <TextField
-                            id="buyerLastName"
-                            label="Last name"
-                            variant="filled"
-                            helperText="Required">
-                        </TextField>
-                    </fieldset>
-                    <fieldset id="billing-address">
-                        <TextField
-                            id="billing-street-address"
-                            label="Billing street address"
-                            variant="filled"
-                            helperText="Required">
-                        </TextField>
+                                <TextField
+                                    id="buyerLastName"
+                                    label="Last name"
+                                    variant="filled"
+                                    helperText="Required">
+                                </TextField>
+                            </fieldset>
+                            <fieldset id="billing-address">
+                                <TextField
+                                    id="billing-street-address"
+                                    label="Billing street address"
+                                    variant="filled"
+                                    helperText="Required">
+                                </TextField>
 
-                        <TextField
-                            id="city"
-                            label="City"
-                            helperText="Required"
-                            variant="filled">
-                        </TextField>
-                        <TextField
-                            id="state"
-                            label="State"
-                            variant="filled"
-                            helperText="Required">
-                        </TextField>
-                        <TextField
-                            id="zipcode"
-                            label="Zip code"
-                            variant="filled"
-                            helperText="Required">
-                        </TextField>
-                        <TextField
-                            id="phone"
-                            label="Phone"
-                            variant="filled"
-                            helperText="Required">
-                        </TextField>
-                        <TextField
-                            id="eml"
-                            label="Email"
-                            variant="filled"
-                            helperText="Required">
-                        </TextField>
-                    </fieldset>
+                                <TextField
+                                    id="city"
+                                    label="City"
+                                    helperText="Required"
+                                    variant="filled">
+                                </TextField>
+                                <TextField
+                                    id="state"
+                                    label="State"
+                                    variant="filled"
+                                    helperText="Required">
+                                </TextField>
+                                <TextField
+                                    id="zipcode"
+                                    label="Zip code"
+                                    variant="filled"
+                                    helperText="Required">
+                                </TextField>
+                                <TextField
+                                    id="phone"
+                                    label="Phone"
+                                    variant="filled"
+                                    helperText="Required">
+                                </TextField>
+                                <TextField
+                                    id="eml"
+                                    label="Email"
+                                    variant="filled"
+                                    helperText="Required">
+                                </TextField>
+                            </fieldset>
 
-                </AccordionDetails>
-            </Accordion>
-            <Accordion>
-                <AccordionSummary
-                    expandIcon={<ExpandMore />}
-                    aria-label="Expand"
-                    aria-controls="sqPaymentForm"
-                    id="sqPaymentForm-header">
+                        </AccordionDetails>
+                    </Accordion>
+                    <Accordion>
+                        <AccordionSummary
+                            expandIcon={<ExpandMore />}
+                            aria-label="Expand"
+                            aria-controls="sqPaymentForm"
+                            id="sqPaymentForm-header">
 
-                    <p>Credit Card Details</p>
+                            <p>Credit Card Details</p>
 
 
-                </AccordionSummary>
-                <AccordionDetails>
+                        </AccordionSummary>
+                        <AccordionDetails>
 
-                    <SquarePaymentsForm
-                        cardTokenizeResponseReceived={this.cardTokenizeResponseReceived}
-                        applicationId={applicationId ?? ""}
-                        locationId={locationId ?? ""}>
-                        <CreditCardInput />
-                    </SquarePaymentsForm>
-                </AccordionDetails>
-            </Accordion>
-            <div id="pymt-status-msg">
-                <p id="pymt-status-txt"></p>
-            </div>
-        </div>)
-
+                            <SquarePaymentsForm
+                                cardTokenizeResponseReceived={this.cardTokenizeResponseReceived}
+                                applicationId={applicationId ?? ""}
+                                locationId={locationId ?? ""}>
+                                <CreditCardInput />
+                            </SquarePaymentsForm>
+                        </AccordionDetails>
+                    </Accordion>
+                    <div id="pymt-status-msg">
+                        <p id="pymt-status-txt"></p>
+                    </div>
+                </div>)
     }
 }

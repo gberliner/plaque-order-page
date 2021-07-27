@@ -17,7 +17,7 @@ code {
   min-width: 300px;
   max-height: min-content;
   margin: 150px auto;
-  visibility: hidden;
+  visibility: visible;
 }
 #address-container {
   max-width: 550px;

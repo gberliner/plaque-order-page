@@ -1,7 +1,7 @@
 import './App.css';
 import {MapWithPlaceholder} from './map'
 import { NewPaymentForm } from './NewPaymentForm';
-
+import { InitialFormFields } from './InitialFormFields'
 import React from 'react';
 
 type PlaqueAppState = {
@@ -23,7 +23,7 @@ export default class App extends React.Component<{},PlaqueAppState> {
     return (
       <div className="App">
         <MapWithPlaceholder />
-        <NewPaymentForm />
+        <InitialFormFields></InitialFormFields>
       </div>
     );
 }
