@@ -1,9 +1,10 @@
 import React, {} from 'react'
 import {SquarePaymentsForm,CreditCardInput,} from 'react-square-web-payments-sdk';
 import {TokenResult} from '@square/web-sdk'
-import {Accordion, AccordionDetails, AccordionSummary,TextField, Dialog} from '@material-ui/core'
+import {Accordion, AccordionDetails, AccordionSummary,TextField, Dialog, DialogContent, Button} from '@material-ui/core'
 import { ExpandMore } from '@material-ui/icons';
 import {Alert,Color} from '@material-ui/lab';
+import { DialogActions } from '@material-ui/core';
 
 const applicationId = process.env.REACT_APP_APPLICATION_ID
 const locationId = process.env.REACT_APP_LOCATION_ID;
@@ -18,7 +19,8 @@ type PymtStatusObj = {
     reason?: string;
 }
 type NewPaymentFormProps = {
-
+    resetForm: (success:boolean)=>void;
+    validationError: boolean;
 }
 
 type PaymentStatus = "unpaid"|"error"|"paid"
@@ -114,8 +116,7 @@ export class NewPaymentForm extends React.Component<NewPaymentFormProps,NewPayme
                         pymtStatus: success?"paid":"error",
                         alertText: this.formatStatus(rcptObj)
                     })
-                    let mapForm = (document.getElementById('map-form') as HTMLDivElement);
-                    mapForm.style.visibility = 'hidden'
+                    this.props.resetForm(true)
                 } catch (error) {
                     try {
                         let errorObj = JSON.parse(error);
@@ -157,16 +158,33 @@ export class NewPaymentForm extends React.Component<NewPaymentFormProps,NewPayme
     }
     render() {
         let price = this?.state?.price;
-        if (this?.state?.pymtStatus === 'paid' || this?.state?.pymtStatus === 'error') {
-            let colorstatus: Color = this.state.pymtStatus==='paid'?'success':'error';
+        if (this.props.validationError || this?.state?.pymtStatus === 'paid' || this?.state?.pymtStatus === 'error') {
+            let colorstatus: Color;
+            colorstatus = ((this.props.validationError)?'error':'success')
+            if (this.state !== null && this.state.pymtStatus !== null) {
+                colorstatus = ((this.state.pymtStatus==='paid')?'success':'error');
+            }
             return( 
                 <div>
                     <br></br>
                     <br></br>
                     <br></br>    
-                    <Alert color={colorstatus}>
-                        {this.state.alertText}
-                    </Alert>
+                    <Dialog open={this.props.validationError}>
+                        <DialogContent>
+                            <Alert color={colorstatus}>
+                                {this.props.validationError?"Address not found in Brooklyn, please try again":this.state.alertText}
+                            </Alert>
+                        </DialogContent>
+                        <DialogActions>
+                            <Button 
+                            onClick={(event)=>{
+                                this.props.resetForm(this.state.pymtStatus==='paid'?true:false);
+                            }} color="primary">
+                                Cancel
+                            </Button>
+                        </DialogActions>
+                    </Dialog>
+
                 </div>
                 )
         }
