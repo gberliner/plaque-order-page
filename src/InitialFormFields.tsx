@@ -16,9 +16,8 @@ export function InitialFormFields(props: {
     function openPaymentDialog() {
         return paymentSucceeded || validationError || addressValidated;
     }
-
     useEffect(()=>{
-        (document.getElementById('addr-value') as HTMLInputElement).value = address;
+        (document.getElementById('addr-value') as HTMLInputElement).dispatchEvent(new Event('onChange'));
         if (!addressValidated && validationError) {
             
         }
@@ -64,7 +63,7 @@ export function InitialFormFields(props: {
             }
         }
       }
-
+      
     return (
         <div id='initial-form-fields'>
             <Dialog open={openPaymentDialog()}>
@@ -84,10 +83,13 @@ export function InitialFormFields(props: {
 
                             <TextField
                                 id="addr-value"
-                                value={address}
                                 label="Historic home street address"
                                 variant="filled"
-                                
+                                onChange={
+                                    (event)=>{
+                                        event.target.defaultValue = address
+                                    }
+                                }
                                 helperText="Required">
                             </TextField>
                         </div>

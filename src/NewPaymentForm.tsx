@@ -4,7 +4,7 @@ import {TokenResult} from '@square/web-sdk'
 import {Accordion, AccordionDetails, AccordionSummary,TextField, Dialog, DialogContent, Button} from '@material-ui/core'
 import { ExpandMore } from '@material-ui/icons';
 import {Alert,Color} from '@material-ui/lab';
-import { DialogActions } from '@material-ui/core';
+import { DialogActions, LinearProgress } from '@material-ui/core';
 
 const applicationId = process.env.REACT_APP_APPLICATION_ID
 const locationId = process.env.REACT_APP_LOCATION_ID;
@@ -39,11 +39,19 @@ let statusNames = ['FAILED','SUCCESS']
 export class NewPaymentForm extends React.Component<NewPaymentFormProps,NewPaymentFormState> {
     constructor(props: NewPaymentFormProps) {
         super(props);
-        this.setState({
+        this.state = {
             price: 9999,
-            pymtStatus: "unpaid",
-            alertText: ""
-        })
+            alertText: this.props.validationError?"Address not found in Brooklyn neighborhood":"some problem or other",
+            pymtStatus: 'unpaid'
+        }
+        
+        
+        
+        if (this.props.validationError) {
+            this.setState({
+                alertText: "Address not found in Brooklyn, please try again"
+            })
+        }
         this.cardTokenizeResponseReceived = this.cardTokenizeResponseReceived.bind(this)
         this.formatStatus = this.formatStatus.bind(this);
     }
@@ -161,25 +169,48 @@ export class NewPaymentForm extends React.Component<NewPaymentFormProps,NewPayme
         if (this.props.validationError || this?.state?.pymtStatus === 'paid' || this?.state?.pymtStatus === 'error') {
             let colorstatus: Color;
             colorstatus = ((this.props.validationError)?'error':'success')
+            if (this.state === null || this.state.alertText === undefined) {
+                return( //still waitin for it to come around on the guitar
+                    <LinearProgress></LinearProgress>
+                )
+            }
+            if (this.props.validationError && this.state.alertText === null || this.state.alertText === undefined) {
+                return (
+                    <LinearProgress></LinearProgress>
+                )
+            }
             if (this.state !== null && this.state.pymtStatus !== null) {
                 colorstatus = ((this.state.pymtStatus==='paid')?'success':'error');
+            }
+            if (this.state.pymtStatus === 'paid') {
+                return(
+                <Dialog open={true}>
+                <DialogContent>
+                    <Alert color={colorstatus}>
+                        {this.state.alertText}
+                    </Alert>
+                </DialogContent></Dialog>)
             }
             return( 
                 <div>
                     <br></br>
                     <br></br>
                     <br></br>    
-                    <Dialog open={this.props.validationError}>
+                    <Dialog open={this.props.validationError || this.state.pymtStatus !== 'unpaid'}>
                         <DialogContent>
                             <Alert color={colorstatus}>
-                                {this.props.validationError?"Address not found in Brooklyn, please try again":this.state.alertText}
+                                {this.state.alertText}
                             </Alert>
                         </DialogContent>
                         <DialogActions>
                             <Button 
                             onClick={(event)=>{
                                 this.props.resetForm(this.state.pymtStatus==='paid'?true:false);
-                            }} color="primary">
+                                this.setState({
+                                    pymtStatus: 'unpaid' // rewind back to the beginning
+                                })
+                            }} 
+                            color="primary">
                                 Cancel
                             </Button>
                         </DialogActions>
