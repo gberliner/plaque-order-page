@@ -1,2 +1,2 @@
 web: npm start
-worker: npm run worker
+clock: npm run scheduler
