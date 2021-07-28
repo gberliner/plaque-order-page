@@ -3,7 +3,7 @@ import Square, {CatalogApi,OrdersApi} from 'square';
 import {nanoid} from 'nanoid';
 import {sendemail,EmailBody,EmailHeader} from './sendemail'
 
-const notificationEmail = process.env.NOTIFICATION_RECIPIENT || 'treasurer@brooklyn-neighborhood.org'
+const notificationEmail = process.env.NOTIFICATION_RECIPIENT || 'guy.berliner@gmail.com'
 
 export async function worker(){
 
@@ -62,14 +62,16 @@ export async function worker(){
         if (newOrders.length >= 3) {
             await sendemail({
                 recipient: notificationEmail,
-                sender: notificationEmail,
-                subject: "New plaque orders ready for view"
+                sender: 'chair@brooklyn-neighborhood.org',
+                subject: "New plaque orders ready for review"
             }, {
                 text: "The following orders have come in and await your approval. Please log into the order system and mark them \"in progress\" or \"complete\" as appropriate:  " + newOrders.join("\n"),
-                html: ""
+                html: `The following orders have come in and await your approval:<br>
+                    <ul><li>${newOrders.join('</li><li>')}</li></ul><br>Please log into the order system and move them to 'in progress' or 'completed' as appropriate.
+                `
             })
+            await pgClient.query(`update custorders set status='t_notified' where status='new'`);
         }
-        await pgClient.query(`update custorders set status='t_notified' where status='open'`);
 
     } catch (error) {
         console.error("Error updating Square orders: " + error)
@@ -79,4 +81,5 @@ export async function worker(){
     } finally {
         pgClient.end()
     }
+
 }
