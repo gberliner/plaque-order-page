@@ -12,6 +12,7 @@
     "@mui-treasury/layout": "^4.5.0",
     "@mui-treasury/styles": "^1.13.1",
     "@react-leaflet/core": "1.0.2",
+    "@sendgrid/mail": "^7.4.5",
     "@square/web-sdk": "^2.0.0",
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^11.2.7",

@@ -1,17 +1,17 @@
 import sendgrid, { } from '@sendgrid/mail'
 
-type EmailHeader = {
+export type EmailHeader = {
     recipient: string;
     sender: string;
     subject: string;
 }
-type EmailBody = {
+export type EmailBody = {
     text: string;
     html: string;
 }
 export async function sendemail(header: EmailHeader,body: EmailBody) {
 
-    sendgrid.setApiKey(process.env.SENDGRID_API_KEY)
+    sendgrid.setApiKey(process.env.SENDGRID_API_KEY as string)
     const msg = {
         to: header.recipient, // Change to your recipient
         from: header.sender, // Change to your verified sender

@@ -87,16 +87,18 @@ export default function createPlaqueOrder(req:Request, res:Response, next:NextFu
                     recipient: {
                         displayName: email
                     },
-                    expiresAt: (new Date(Date.now()+28*86400)).toISOString(),
                     autoCompleteDuration: "P4W",
-                    scheduleType: "SCHEDULED",
-                    pickupAt: (new Date(Date.now()+28*86400)).toISOString(),
-                    note: "any time now"
+                    scheduleType: "ASAP",
+                    note: "any time now",
+                    prepTimeDuration: "P4W"
                 }
                 fulfillment = {
                     uid: nanoid(),
                     state: "PROPOSED",
                     type: "PICKUP",
+                    metadata: {
+                        "key": "value"
+                    },
                     pickupDetails
                 }
                 Square.OrdersApi  
@@ -122,7 +124,7 @@ export default function createPlaqueOrder(req:Request, res:Response, next:NextFu
                             next("apparent glitch in square orderapi: no new orderid returned")
                         }
                         try {
-                            await pgClient.query(`insert into CustOrders(SqOrderId,CustEmail,CustAddr,Year,CustomWords) values ('${sqNewOrderId}','${email}','${address}','${year}','${customwords}')`);
+                            await pgClient.query(`insert into CustOrders(SqOrderId,CustEmail,CustAddr,Year,CustomWords,Status) values ('${sqNewOrderId}','${email}','${address}','${year}','${customwords}','new')`);
                             req.body["orderid"] = sqNewOrderId;
                             req.body["price"] = base_price_money.amount.toString();
                         } catch (error) {
