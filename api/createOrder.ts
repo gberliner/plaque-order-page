@@ -80,9 +80,16 @@ export default function createPlaqueOrder(req:Request, res:Response, next:NextFu
                     locationId: (process.env.REACT_APP_LOCATION_ID===undefined?"undefined":process.env.REACT_APP_LOCATION_ID),
                 };
                 bodyOrder.lineItems = bodyOrderLineItems
-            
+                let fulfillment: Square.OrderFulfillment;
+                fulfillment = {
+                    uid: nanoid(),
+                    state: "pending"
+                }
+                let fulfillments: Square.OrderFulfillment[] = new Array(0)
+                fulfillments.push(fulfillment)
                 const body: Square.CreateOrderRequest = {};
                 body.order = bodyOrder
+                body.order.fulfillments = fulfillments
                 body.idempotencyKey = nanoid();
 
                 let ordersApi = new OrdersApi(client);
