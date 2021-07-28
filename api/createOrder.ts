@@ -10,6 +10,8 @@ type Req = {
     buyerVerificationToken: string|undefined,
     email: string;
     address: string;
+    year: string;
+    customwords: string;
 }
 type Res = {
     status?: Number;
@@ -33,6 +35,8 @@ export default function createPlaqueOrder(req:Request, res:Response, next:NextFu
     let reqData: Req = req.body;
     let email = reqData?.email;
     let address = reqData?.address;
+    let year = reqData?.year;
+    let customwords = reqData?.customwords
     let clientEnvironmentSandbox = {
         accessToken: process.env.SQUARE_ACCESS_TOKEN,
         environment: Square.Environment.Sandbox,
@@ -96,7 +100,7 @@ export default function createPlaqueOrder(req:Request, res:Response, next:NextFu
                             next("apparent glitch in square orderapi: no new orderid returned")
                         }
                         try {
-                            await pgClient.query(`insert into CustOrders(SqOrderId,CustEmail,CustAddr) values ('${sqNewOrderId}','${email}','${address}')`);
+                            await pgClient.query(`insert into CustOrders(SqOrderId,CustEmail,CustAddr,Year,CustomWords) values ('${sqNewOrderId}','${email}','${address}','${year}','${customwords}')`);
                             req.body["orderid"] = sqNewOrderId;
                             req.body["price"] = base_price_money.amount.toString();
                         } catch (error) {

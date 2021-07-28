@@ -1,10 +1,8 @@
 import {TextField,Dialog,Button} from '@material-ui/core'
 import {OverpassResponse,OverpassJson,overpass,} from 'overpass-ts'
-import { useState, useEffect } from 'react';
+import { useState, useEffect, MouseEvent } from 'react';
 import { NewPaymentForm } from './NewPaymentForm';
 import {fmtAddressQueryResults} from './overpass-utils'
-
-
 export function InitialFormFields(props: {
 }) {
     const [address, setAddress] = useState('')
@@ -13,6 +11,7 @@ export function InitialFormFields(props: {
     const [addressValidated,setAddressValidated] = useState(false)
     const [validationError,setValidationError] = useState(false)
     const [paymentSucceeded,setPaymentSucceeded] = useState(false)
+    const [validationErrorMsg,setValidationErrorMsg] = useState("")
     function openPaymentDialog() {
         return paymentSucceeded || validationError || addressValidated;
     }
@@ -21,7 +20,7 @@ export function InitialFormFields(props: {
         if (!addressValidated && validationError) {
             
         }
-    },[address,addressValidated,overpassErrorMsg]
+    },[address,validationError,addressValidated,overpassErrorMsg]
     )
     function resetForm(withPaymentSucceeded: boolean){
         setAddressValidated(false)
@@ -46,28 +45,72 @@ export function InitialFormFields(props: {
             out body;`, { endpoint: "https://overpass.kumi.systems/api/interpreter" }) as OverpassJson
                 let updatedAddress = fmtAddressQueryResults(res);
                 if (updatedAddress !== "") {
-                    setValidationError(false)
                     setAddressValidated(true);
+                    setAddress(updatedAddress)
+                    return false
                 } else {
                     setAddressValidated(false);
-                    setValidationError(true)
+                    setValidationErrorMsg("Address not found in Brooklyn")
+                    return true
                 }
-                setAddress(updatedAddress)
             } catch (error) {
                 setAddressValidated(false)
                 console.error(error?.message);
                 if (null !== pymtForm) {
                     pymtForm.style.visibility = "hidden";
                 }
+                setValidationErrorMsg("Error from overpass server: " + error?.message)
                 setOverpassErrorMsg(error?.message);
+                return true
             }
         }
-      }
+        return true
+    }
+
+
+      function validateYear() {
+        let yearValue = (document.getElementById('plaque-year') as HTMLInputElement).value
+        let validYear = true
+        validYear = null !== yearValue.match(/^\d{4}$/)
+        validYear = null !== yearValue.match(/^(?:18)|(?:19)|(?:20)\d\d/)
+
+        if (!validYear) {
+            setValidationErrorMsg("Invalid year specified")    
+        }
+        return !validYear;
+    }
+
+    function validateCustomWords() {
+        let validCustomWords = true
+        validCustomWords = 30 >= (document.getElementById("plaque-optional-text") as HTMLInputElement).value.length;
+        if (!validCustomWords) {
+            setValidationErrorMsg("Optional text limited to thirty characters")
+        }
+        return !validCustomWords
+    }
+
+    async function validateFields(event: MouseEvent) {
+        event.preventDefault()
+        let res: boolean|Promise<boolean> = false;
+        res = validateYear() || validateCustomWords() || verifyAddress()
+        let validationErrorOccurred: boolean;
+        try {
+            validationErrorOccurred = await res;
+            setValidationError(validationErrorOccurred)
+        } catch (error) {
+            console.error("Validation failed")
+            setValidationErrorMsg("Validation failed due to possible system or network error")
+            setValidationError(true);
+        }        
+    }
       
     return (
         <div id='initial-form-fields'>
             <Dialog open={openPaymentDialog()}>
-                <NewPaymentForm validationError={validationError} resetForm={resetForm}></NewPaymentForm>
+                <NewPaymentForm 
+                validationError={validationError} 
+                validationErrorMsg={validationErrorMsg}
+                resetForm={resetForm}></NewPaymentForm>
                 <Button onClick={()=>{
                      resetForm(paymentSucceeded);
                 }}>Cancel</Button>
@@ -103,7 +146,7 @@ export function InitialFormFields(props: {
                     </div>
 
                 </div>
-                <button id="verify-address" type="button" onClick={verifyAddress}>Verify</button>
+                <button id="verify-address" type="button" onClick={validateFields}>Verify</button>
                 <br></br>
             </form>
         </div>

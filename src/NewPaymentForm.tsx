@@ -21,6 +21,7 @@ type PymtStatusObj = {
 type NewPaymentFormProps = {
     resetForm: (success:boolean)=>void;
     validationError: boolean;
+    validationErrorMsg: string;
 }
 
 type PaymentStatus = "unpaid"|"error"|"paid"
@@ -41,7 +42,7 @@ export class NewPaymentForm extends React.Component<NewPaymentFormProps,NewPayme
         super(props);
         this.state = {
             price: 9999,
-            alertText: this.props.validationError?"Address not found in Brooklyn neighborhood":"some problem or other",
+            alertText: this.props.validationError?this.props.validationErrorMsg:"some problem or other",
             pymtStatus: 'unpaid'
         }
         
@@ -98,10 +99,14 @@ export class NewPaymentForm extends React.Component<NewPaymentFormProps,NewPayme
         let address = (document.getElementById('addr-value') as HTMLInputElement)?.value;
         let email = (document.getElementById('eml') as HTMLInputElement)?.value;
         let success = true;
+        let year = (document.getElementById('plaque-year') as HTMLInputElement)?.value;
+        let customwords = (document.getElementById('plaque-optional-text') as HTMLInputElement)?.value;
         let payload = {
             nonce: tokenObj.token,
             address,
-            email
+            email,
+            year,
+            customwords
         }
         try {
             let rcpt = await fetch('/api/process-payment',
