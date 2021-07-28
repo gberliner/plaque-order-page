@@ -80,11 +80,26 @@ export default function createPlaqueOrder(req:Request, res:Response, next:NextFu
                     locationId: (process.env.REACT_APP_LOCATION_ID===undefined?"undefined":process.env.REACT_APP_LOCATION_ID),
                 };
                 bodyOrder.lineItems = bodyOrderLineItems
+                
                 let fulfillment: Square.OrderFulfillment;
+                let pickupDetails: Square.OrderFulfillmentPickupDetails;
+                pickupDetails = {
+                    recipient: {
+                        displayName: email
+                    },
+                    expiresAt: (new Date(Date.now()+28*86400)).toISOString(),
+                    autoCompleteDuration: "P4W",
+                    scheduleType: "SCHEDULED",
+                    pickupAt: (new Date(Date.now()+28*86400)).toISOString(),
+                    note: "any time now"
+                }
                 fulfillment = {
                     uid: nanoid(),
-                    state: "pending"
+                    state: "PROPOSED",
+                    type: "PICKUP",
+                    pickupDetails
                 }
+                Square.OrdersApi  
                 let fulfillments: Square.OrderFulfillment[] = new Array(0)
                 fulfillments.push(fulfillment)
                 const body: Square.CreateOrderRequest = {};
