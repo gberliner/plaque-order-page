@@ -12,5 +12,5 @@ export async function worker(){
     // } catch (error) {
     //     console.error(error.message);
     // }
-    console.log("hello from your running worker!: " + (new Date(Date.now())).toISOString())
+    console.error("hello from your running worker!: " + (new Date(Date.now())).toISOString())
 }
