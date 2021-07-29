@@ -68,14 +68,18 @@ export function InitialFormFields(props: {
     }
 
 
-      function validateYear() {
+    function validateYear() {
         let yearValue = (document.getElementById('plaque-year') as HTMLInputElement).value
-        let validYear = false
-        validYear = (null !== yearValue.match(/^\d{4}$/))
-        validYear &&= (null !== yearValue.match(/^(?:18)|(?:19)|(?:20)\d\d/))
-
-        if (!validYear) {
-            setValidationErrorMsg("Invalid year specified")    
+        let validYear = true
+        if (null === yearValue.match(/^\d{4}$/)) {
+            validYear = false;
+            setValidationErrorMsg("Invalid year specified")
+            return !validYear;
+        }
+        if (!(yearValue.startsWith("18") || yearValue.startsWith("19"))) {
+            validYear = false;
+            setValidationErrorMsg("Invalid year specified")
+            return !validYear;
         }
         return !validYear;
     }
