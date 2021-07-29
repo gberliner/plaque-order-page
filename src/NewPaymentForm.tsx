@@ -1,4 +1,4 @@
-import React, {} from 'react'
+import React, { ChangeEvent } from 'react'
 import {SquarePaymentsForm,CreditCardInput,} from 'react-square-web-payments-sdk';
 import {TokenResult} from '@square/web-sdk'
 import {Accordion, AccordionDetails, AccordionSummary,TextField, Dialog, DialogContent, Button} from '@material-ui/core'
@@ -30,6 +30,10 @@ type NewPaymentFormState = {
     price: number;
     pymtStatus: PaymentStatus;
     alertText: string;
+    badPhoneNo: boolean;
+    phoneNoErrorText: string;
+    badZip: boolean;
+    zipErrorText: string;
 }
 
 enum statusEnum {
@@ -43,7 +47,11 @@ export class NewPaymentForm extends React.Component<NewPaymentFormProps,NewPayme
         this.state = {
             price: 9999,
             alertText: this.props.validationError?this.props.validationErrorMsg:"some problem or other",
-            pymtStatus: 'unpaid'
+            pymtStatus: 'unpaid',
+            badPhoneNo: false,
+            phoneNoErrorText: 'required',
+            badZip: false,
+            zipErrorText: 'required'
         }
         
         
@@ -52,6 +60,7 @@ export class NewPaymentForm extends React.Component<NewPaymentFormProps,NewPayme
             this.setState({
                 alertText: "Address not found in Brooklyn, please try again"
             })
+
         }
         this.cardTokenizeResponseReceived = this.cardTokenizeResponseReceived.bind(this)
         this.formatStatus = this.formatStatus.bind(this);
@@ -101,12 +110,19 @@ export class NewPaymentForm extends React.Component<NewPaymentFormProps,NewPayme
         let success = true;
         let year = (document.getElementById('plaque-year') as HTMLInputElement)?.value;
         let customwords = (document.getElementById('plaque-optional-text') as HTMLInputElement)?.value;
+        let phone = (document.getElementById('phone') as HTMLInputElement)?.value;
+        let firstname = (document.getElementById('buyerFirstName') as HTMLInputElement).value
+        let lastname = (document.getElementById('buyerLastName') as HTMLInputElement).value
+
         let payload = {
             nonce: tokenObj.token,
             address,
             email,
             year,
-            customwords
+            customwords,
+            phone,
+            firstname,
+            lastname
         }
         try {
             let rcpt = await fetch('/api/process-payment',
@@ -169,6 +185,7 @@ export class NewPaymentForm extends React.Component<NewPaymentFormProps,NewPayme
 
         return;
     }
+
     render() {
         let price = this?.state?.price;
         if (this.props.validationError || this?.state?.pymtStatus === 'paid' || this?.state?.pymtStatus === 'error') {
@@ -244,6 +261,9 @@ export class NewPaymentForm extends React.Component<NewPaymentFormProps,NewPayme
                                 <TextField
                                     id="buyerFirstName"
                                     label="First name"
+                                    inputProps={{
+                                        maxLength: 50
+                                    }}
                                     variant="filled"
                                     helperText="Required">
                                 </TextField>
@@ -251,6 +271,9 @@ export class NewPaymentForm extends React.Component<NewPaymentFormProps,NewPayme
                                 <TextField
                                     id="buyerLastName"
                                     label="Last name"
+                                    inputProps={{
+                                        maxLength: 50
+                                    }}
                                     variant="filled"
                                     helperText="Required">
                                 </TextField>
@@ -259,6 +282,9 @@ export class NewPaymentForm extends React.Component<NewPaymentFormProps,NewPayme
                                 <TextField
                                     id="billing-street-address"
                                     label="Billing street address"
+                                    inputProps={{
+                                        maxLength: 50
+                                    }}
                                     variant="filled"
                                     helperText="Required">
                                 </TextField>
@@ -266,26 +292,74 @@ export class NewPaymentForm extends React.Component<NewPaymentFormProps,NewPayme
                                 <TextField
                                     id="city"
                                     label="City"
+                                    inputProps={{
+                                        maxLength: 50
+                                    }}
                                     helperText="Required"
                                     variant="filled">
                                 </TextField>
                                 <TextField
                                     id="state"
                                     label="State"
+                                    inputProps={{
+                                        maxLength: 2
+                                    }}
                                     variant="filled"
                                     helperText="Required">
                                 </TextField>
                                 <TextField
                                     id="zipcode"
                                     label="Zip code"
+                                    inputProps={{
+                                        maxLength: 5
+                                    }}
+                                    onChange={(event)=>{
+                                        if (!this.state.badZip && event.currentTarget.value.match(/^\d+$/)===null) {
+                                            this.setState({
+                                                badZip: true,
+                                                zipErrorText: "must be numeric"
+                                            })
+                                            let payform = (document.getElementById('sqpayform') as HTMLFormElement); 
+                                            payform.styles.visibility = 'hidden'
+                                       } else if (this.state.badPhoneNo && event.currentTarget.value.match(/^\d+$/)!==null) {
+                                            this.setState({
+                                                badZip: false,
+                                                zipErrorText: "required"
+                                            })
+                                            let payform = (document.getElementById('sqpayform') as HTMLFormElement); 
+                                            payform.styles.visibility = 'visible'
+                                       }
+                                   }}
+
                                     variant="filled"
-                                    helperText="Required">
+                                    helperText={this.state.zipErrorText}>
                                 </TextField>
                                 <TextField
                                     id="phone"
                                     label="Phone"
                                     variant="filled"
-                                    helperText="Required">
+                                    inputProps={{
+                                        maxLength: 10
+                                    }}
+                                    error={this.state.badPhoneNo}
+                                    onChange={(event)=>{
+                                         if (!this.state.badPhoneNo && event.currentTarget.value.match(/^\d+$/)===null) {
+                                             this.setState({
+                                                 badPhoneNo: true,
+                                                 phoneNoErrorText: "must be numeric"
+                                             })
+                                             let payform = (document.getElementById('sqpayform') as HTMLFormElement); 
+                                             payform.styles.visibility = 'hidden'
+                                        } else if (this.state.badPhoneNo && event.currentTarget.value.match(/^\d+$/)!==null) {
+                                             this.setState({
+                                                 badPhoneNo: false,
+                                                 phoneNoErrorText: "required"
+                                             })
+                                             let payform = (document.getElementById('sqpayform') as HTMLFormElement); 
+                                             payform.styles.visibility = 'visible'
+                                        }
+                                    }}
+                                    helperText={this.state.phoneNoErrorText}>
                                 </TextField>
                                 <TextField
                                     id="eml"
@@ -311,6 +385,7 @@ export class NewPaymentForm extends React.Component<NewPaymentFormProps,NewPayme
                         <AccordionDetails>
 
                             <SquarePaymentsForm
+                                formId="sqpayform"
                                 cardTokenizeResponseReceived={this.cardTokenizeResponseReceived}
                                 applicationId={applicationId ?? ""}
                                 locationId={locationId ?? ""}>

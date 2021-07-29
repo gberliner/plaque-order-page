@@ -1,10 +1,54 @@
 import pg from 'pg';
-import Square, {CatalogApi,OrdersApi} from 'square';
+import Square, {CatalogApi,OrdersApi,CustomersApi   } from 'square';
 import {nanoid} from 'nanoid';
 import {sendemail,EmailBody,EmailHeader} from './sendemail'
+import { v1PhoneNumberSchema } from 'square/dist/models/v1PhoneNumber';
 
 const notificationEmail = process.env.NOTIFICATION_RECIPIENT || 'guy.berliner@gmail.com'
 
+async function checkForAndCreateCustomerInSquare(row: any,client: Square.Client, pgclient: pg.Client) {
+    let email = row['email'];
+    let searchFilter: Square.SearchCustomersRequest = {
+
+    }
+    let emailQuery: Square.CustomerQuery = {
+
+    }
+    let emailQueryFilter: Square.CustomerFilter = {
+
+    }
+    emailQueryFilter.emailAddress = email;
+    emailQuery.filter = emailQueryFilter
+    searchFilter.query = emailQuery;
+    searchFilter.limit = BigInt(1);
+    let customerRes = await client.customersApi.searchCustomers(searchFilter)
+    let phone: string = ""
+    let customerLocal = await pgclient.query(`select * from Customer where email='${email}'`)
+    let firstname: string = ""
+    let lastname: string = ""
+    if (customerLocal.rowCount >= 1) {
+        phone = customerLocal.rows[0]['phone']
+    }
+    if (0 === customerRes.result.customers?.length) {
+        
+        let createCustomerRequest: Square.CreateCustomerRequest = {
+
+        }
+        createCustomerRequest.address = row["address"];
+        createCustomerRequest.emailAddress = email
+        createCustomerRequest.phoneNumber = "1" + phone
+        createCustomerRequest.givenName = firstname
+        createCustomerRequest.familyName = lastname
+        let sqCustRes = await client.customersApi.createCustomer(createCustomerRequest)
+        let sqid = ""
+        if (sqCustRes?.result !== undefined && sqCustRes?.result?.customer !== undefined && sqCustRes?.result?.customer.id !== undefined) {
+            sqid = sqCustRes.result.customer.id;
+        }
+        await pgclient.query(`update customer set sqid='${sqid}' where email='${email}'`)
+    }
+}
+
+// to be run as scheduled job
 export async function worker(){
 
     let connectionString = process.env.DATABASE_URL 
@@ -18,9 +62,10 @@ export async function worker(){
     pgClient.connect();
     try {
         let results = await pgClient.query(`select * from custorders where status='new';`)
-        results.rows.forEach((row) => {
+        results.rows.forEach(async (row) => {
             let squrderid = row["sqorderid"];
             newOrders.push(squrderid);
+            checkForAndCreateCustomerInSquare(row,sqClient,pgClient)
         })
         if (results.rows.length < 3) {
             throw(new Error('too few orders to act on'))            
