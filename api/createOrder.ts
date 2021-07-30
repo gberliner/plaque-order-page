@@ -136,7 +136,7 @@ export default function createPlaqueOrder(req:Request, res:Response, next:NextFu
                             req.body["price"] = base_price_money.amount.toString();
                             let custqueryres = await pgClient.query(`select * from customer where email='${email}'`)
                             if (1 > custqueryres.rowCount) {
-                                await pgClient.query(`insert into customer (firstname,lastname,address,email,phone) values('${firstname}', '${lastname}', '${email}','${address}','${phone}')`) 
+                                await pgClient.query(`insert into customer (firstname,lastname,email,address,phone) values('${firstname}', '${lastname}', '${email}','${address}','${phone}')`) 
                             }
                         } catch (error) {
                             console.error(error?.message)

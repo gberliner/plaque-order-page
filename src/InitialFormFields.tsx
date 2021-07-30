@@ -1,6 +1,6 @@
 import {TextField,Dialog,Button} from '@material-ui/core'
 import {OverpassResponse,OverpassJson,overpass,} from 'overpass-ts'
-import { useState, useEffect, MouseEvent } from 'react';
+import { useState, useEffect, MouseEvent,CSSProperties } from 'react';
 import { NewPaymentForm } from './NewPaymentForm';
 import {fmtAddressQueryResults} from './overpass-utils'
 export function InitialFormFields(props: {
@@ -107,7 +107,7 @@ export function InitialFormFields(props: {
             setValidationError(true);
         }        
     }
-      
+  
     return (
         <div id='initial-form-fields'>
             <Dialog open={openPaymentDialog()}>
@@ -145,7 +145,6 @@ export function InitialFormFields(props: {
                     <div className="float-child-right">
                         <TextField id="plaque-year" label="Year built" variant="filled" inputProps={{ maxLength: 4 }} style={{ width: 100 }}></TextField>
                         <TextField id="plaque-optional-text" label="Brief optional text" variant="filled"></TextField>
-
 
                     </div>
 

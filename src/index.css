@@ -69,3 +69,7 @@ code {
 #invisible-card {
   visibility: hidden;
 }
+
+.hidden-container {
+  visibility: hidden;
+}

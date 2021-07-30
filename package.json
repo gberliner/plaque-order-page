@@ -79,7 +79,8 @@
   "devDependencies": {
     "dotenv": "^8.2.0",
     "heroku": "^7.56.1",
-    "heroku-cli": "^7.0.9"
+    "heroku-cli": "^7.0.9",
+    "chokidar":"3.5.2"
   },
   "engines": {
     "node": "16.5.0"

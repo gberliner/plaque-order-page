@@ -265,6 +265,9 @@ export class NewPaymentForm extends React.Component<NewPaymentFormProps,NewPayme
                                         maxLength: 50
                                     }}
                                     variant="filled"
+                                    onClick={()=>{
+                                        (document.getElementById('card-container') as HTMLDivElement).style.visibility = 'visible'            
+                                    }}
                                     helperText="Required">
                                 </TextField>
 
@@ -320,14 +323,14 @@ export class NewPaymentForm extends React.Component<NewPaymentFormProps,NewPayme
                                                 zipErrorText: "must be numeric"
                                             })
                                             let payform = (document.getElementById('sqpayform') as HTMLFormElement); 
-                                            payform.styles.visibility = 'hidden'
-                                       } else if (this.state.badPhoneNo && event.currentTarget.value.match(/^\d+$/)!==null) {
+                                            payform.style.visibility = 'hidden'
+                                        } else if (this.state.badPhoneNo && event.currentTarget.value.match(/^\d+$/)!==null) {
                                             this.setState({
                                                 badZip: false,
                                                 zipErrorText: "required"
                                             })
                                             let payform = (document.getElementById('sqpayform') as HTMLFormElement); 
-                                            payform.styles.visibility = 'visible'
+                                            payform.style.visibility = 'visible'
                                        }
                                    }}
 
@@ -349,14 +352,14 @@ export class NewPaymentForm extends React.Component<NewPaymentFormProps,NewPayme
                                                  phoneNoErrorText: "must be numeric"
                                              })
                                              let payform = (document.getElementById('sqpayform') as HTMLFormElement); 
-                                             payform.styles.visibility = 'hidden'
+                                             payform.style.visibility = 'hidden'
                                         } else if (this.state.badPhoneNo && event.currentTarget.value.match(/^\d+$/)!==null) {
                                              this.setState({
                                                  badPhoneNo: false,
                                                  phoneNoErrorText: "required"
                                              })
                                              let payform = (document.getElementById('sqpayform') as HTMLFormElement); 
-                                             payform.styles.visibility = 'visible'
+                                             payform.style.visibility = 'visible'
                                         }
                                     }}
                                     helperText={this.state.phoneNoErrorText}>

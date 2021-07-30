@@ -6,7 +6,21 @@ import { v1PhoneNumberSchema } from 'square/dist/models/v1PhoneNumber';
 
 const notificationEmail = process.env.NOTIFICATION_RECIPIENT || 'guy.berliner@gmail.com'
 
-async function checkForAndCreateCustomerInSquare(row: any,client: Square.Client, pgclient: pg.Client) {
+const configSandbox: Partial<Square.Configuration> = {
+    accessToken: process.env.SQUARE_ACCESS_TOKEN,
+    environment: Square.Environment.Sandbox,
+    customUrl: "https://connect.squareupsandbox.com"
+}
+const configProd: Partial<Square.Configuration> = {
+    accessToken: process.env.SQUARE_ACCESS_TOKEN,
+    environment: Square.Environment.Production
+}
+let configSquare = configSandbox;
+if (process.env.NODE_ENV === "production" && process.env.STAGING !== 'true') {
+    configSquare = configProd
+}
+
+async function checkForAndCreateCustomerInSquare(row: any,client: Square.Client, pgclient: pg.Client,rowFromCustomer: boolean) {
     let email = row['email'];
     let searchFilter: Square.SearchCustomersRequest = {
 
@@ -23,13 +37,23 @@ async function checkForAndCreateCustomerInSquare(row: any,client: Square.Client,
     searchFilter.limit = BigInt(1);
     let customerRes = await client.customersApi.searchCustomers(searchFilter)
     let phone: string = ""
-    let customerLocal = await pgclient.query(`select * from Customer where email='${email}'`)
+    let customerLocal;
     let firstname: string = ""
     let lastname: string = ""
-    if (customerLocal.rowCount >= 1) {
-        phone = customerLocal.rows[0]['phone']
+
+    if (rowFromCustomer) {
+        phone=row['phone']
+        firstname=row['firstname']
+        lastname=row['lastname']
     }
-    if (0 === customerRes.result.customers?.length) {
+
+    if (!rowFromCustomer) {
+        customerLocal = await pgclient.query(`select * from Customer where email='${email}'`)
+        if (customerLocal.rowCount >= 1) {
+            phone = customerLocal.rows[0]['phone']
+        }    
+    }
+    if (rowFromCustomer || 0 === customerRes.result.customers?.length) {
         
         let createCustomerRequest: Square.CreateCustomerRequest = {
 
@@ -48,6 +72,31 @@ async function checkForAndCreateCustomerInSquare(row: any,client: Square.Client,
     }
 }
 
+export async function populateCustomersInSquare() {
+    const sqClient = new Square.Client(configSquare)
+    
+    let connectionString = process.env.DATABASE_URL 
+    let pgClient = new pg.Client({
+        connectionString,
+        ssl: {
+            rejectUnauthorized: false
+        }
+    })
+    pgClient.connect()
+    try{
+        let res = await pgClient.query("select * from customer where sqid is null")
+ 
+        if (res.rowCount > 0) {
+            res.rows.forEach(async row=>{
+                await checkForAndCreateCustomerInSquare(row,sqClient,pgClient,true)
+            })
+        }
+    
+    } finally {
+        pgClient.end()
+    }
+}
+
 // to be run as scheduled job
 export async function worker(){
 
@@ -59,32 +108,21 @@ export async function worker(){
         }
     })
     let newOrders:  string[] = []
+ 
+    let sqClient = new Square.Client(configSquare)
+
     pgClient.connect();
     try {
         let results = await pgClient.query(`select * from custorders where status='new';`)
         results.rows.forEach(async (row) => {
             let squrderid = row["sqorderid"];
             newOrders.push(squrderid);
-            checkForAndCreateCustomerInSquare(row,sqClient,pgClient)
+            await checkForAndCreateCustomerInSquare(row,sqClient,pgClient,false)
         })
         if (results.rows.length < 3) {
             throw(new Error('too few orders to act on'))            
         }
 
-        let configSandbox: Partial<Square.Configuration> = {
-            accessToken: process.env.SQUARE_ACCESS_TOKEN,
-            environment: Square.Environment.Sandbox,
-            customUrl: "https://connect.squareupsandbox.com"
-        }
-        let configProd: Partial<Square.Configuration> = {
-            accessToken: process.env.SQUARE_ACCESS_TOKEN,
-            environment: Square.Environment.Production
-        }
-        let configSquare = configSandbox;
-        if (process.env.NODE_ENV === "production" && process.env.STAGING !== 'true') {
-            configSquare = configProd
-        }
-        let sqClient = new Square.Client(configSquare)
         let retrieveOrderRequest: Square.BatchRetrieveOrdersRequest = {
             orderIds: newOrders
         }
