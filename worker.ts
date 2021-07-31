@@ -170,11 +170,11 @@ export async function worker(){
                 order
             }
         })
-        let squareOrderUrlTemplate = squareUrlPrefix + (process.env.NODE_ENV as string === "sandbox")?"sandbox":"" + squareUrlDashboardPrefix
+        let squareOrderUrlTemplate = squareUrlPrefix + (process.env.NODE_ENV as string === "sandbox" && process.env.STAGING === "true")?"sandbox":"" + squareUrlDashboardPrefix
         if (newOrders.length >= 3) {
             let newOrderLinks = Array<string>(newOrders.length);
             newOrders.forEach((order,idx)=>{
-                newOrderLinks[idx] = `<a href="${squareUrlPrefix}${order}">order id: ${order}</a>`
+                newOrderLinks[idx] = `<a href="${squareOrderUrlTemplate}${order}">order id: ${order}</a>`
             })
             await sendemail({
                 recipient: notificationEmail,
