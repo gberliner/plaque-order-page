@@ -100,10 +100,6 @@ export async function populateCustomersInSquare() {
         await pgClient.connect()
 
         let res = await pgClient.query("select * from customer where sqid is null")
-        let ra: Array<number> = new Array(50)
-        let resnew = ra.forEach((mem)=>{
-            return mem*2;
-        })
         if (res.rowCount > 0) {
             await Promise.all(((ra: Array<unknown>): Array<Promise<unknown >> =>{
                 let promiseRa = new Array<Promise<unknown > >(ra.length);
