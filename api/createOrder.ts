@@ -9,15 +9,19 @@ type Req = {
     nonce: string,
     buyerVerificationToken: string|undefined,
     email: string;
+    phone: string;
     address: string;
     year: string;
     customwords: string;
+    firstname: string;
+    lastname: string;
 }
 type Res = {
     status?: Number;
     error?: string;
     orderid?: string;
 }
+
 export default function createPlaqueOrder(req:Request, res:Response, next:NextFunction): RequestHandler<Request,Response,NextFunction>  {
     let plaqueCatalogId: string;
     let base_price_money: Square.Money  = {
@@ -34,9 +38,12 @@ export default function createPlaqueOrder(req:Request, res:Response, next:NextFu
     
     let reqData: Req = req.body;
     let email = reqData?.email;
+    let phone = reqData?.phone;
     let address = reqData?.address;
     let year = reqData?.year;
-    let customwords = reqData?.customwords
+    let customwords = reqData?.customwords;
+    let firstname = reqData?.firstname;
+    let lastname = reqData?.lastname;
     let clientEnvironmentSandbox = {
         accessToken: process.env.SQUARE_ACCESS_TOKEN,
         environment: Square.Environment.Sandbox,
@@ -124,9 +131,13 @@ export default function createPlaqueOrder(req:Request, res:Response, next:NextFu
                             next("apparent glitch in square orderapi: no new orderid returned")
                         }
                         try {
-                            await pgClient.query(`insert into CustOrders(SqOrderId,CustEmail,CustAddr,Year,CustomWords,Status) values ('${sqNewOrderId}','${email}','${address}','${year}','${customwords}','new')`);
+                            await pgClient.query(`insert into CustOrders(SqOrderId,CustEmail,Phone,CustAddr,Year,CustomWords,Status) values ('${sqNewOrderId}','${email}','${phone}','${address}','${year}','${customwords}','new')`);
                             req.body["orderid"] = sqNewOrderId;
                             req.body["price"] = base_price_money.amount.toString();
+                            let custqueryres = await pgClient.query(`select * from customer where email='${email}'`)
+                            if (1 > custqueryres.rowCount) {
+                                await pgClient.query(`insert into customer (firstname,lastname,email,address,phone) values('${firstname}', '${lastname}', '${email}','${address}','${phone}')`) 
+                            }
                         } catch (error) {
                             console.error(error?.message)
                             next("Failed to update table CustOrders: " + error?.message??" no further details available")
