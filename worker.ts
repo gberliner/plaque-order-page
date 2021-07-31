@@ -23,10 +23,13 @@ if (process.env.NODE_ENV === "production" && process.env.STAGING !== 'true') {
 
 async function checkForAndCreateCustomerInSquare(row: any,client: Square.Client, pgclient: pg.Client,rowFromCustomer: boolean) {
     let email = row['email'];
+    let note: string = ""
+    let origEmail = email
     let legitRes = await legit(email);
     if (!legitRes.isValid) {
-        console.error(`Skipping customer email address ${email}, no valid mx!`)
-        return
+        console.warn(`User email address ${email}, no valid mx!`)
+        note = `The email this user specified, ${email}, was not valid`;
+        email = "fakeaddr-" + Date.now().toString() + "@example.com"
     }
 
     let searchFilter: Square.SearchCustomersRequest = {
@@ -71,6 +74,10 @@ async function checkForAndCreateCustomerInSquare(row: any,client: Square.Client,
             addressLine1: row["address"],
             firstName: firstname,
             lastName: lastname,
+            
+        }
+        if (note !== "") {
+            createCustomerRequest.note = note
         }
         createCustomerRequest.emailAddress = email
         createCustomerRequest.phoneNumber = "1" + phone
@@ -81,7 +88,7 @@ async function checkForAndCreateCustomerInSquare(row: any,client: Square.Client,
         if (sqCustRes?.result !== undefined && sqCustRes?.result?.customer !== undefined && sqCustRes?.result?.customer.id !== undefined) {
             sqid = sqCustRes.result.customer.id;
         }
-        await pgclient.query(`update customer set sqid='${sqid}' where email='${email}'`)
+        await pgclient.query(`update customer set sqid='${sqid}' where email='${origEmail}'`)
     }
 }
 
