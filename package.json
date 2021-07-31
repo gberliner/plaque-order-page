@@ -51,13 +51,14 @@
     "web-vitals": "^1.1.2"
   },
   "scripts": {
-    "newstart": "if [ ${NODE_ENV} = \"sandbox\" ]; then npm run start-backend && npm run start-frontend; else npm run start-frontend; fi",
-    "start": "if [ ${NODE_ENV} = \"sandbox\" ]; then concurrently \"npm run start-backend\" \"npm run start-frontend\"; else npm run start-frontend; fi",
+    "newstart": "if [ ${NODE_ENV} = \"test\" ]; then npm run start-backend && npm run start-frontend; else npm run start-frontend; fi",
+    "start": "if [ ${NODE_ENV} = \"test\" ]; then concurrently \"npm run start-backend\" \"npm run start-frontend\"; else npm run start-frontend; fi",
     "start-frontend": "if [ ${NODE_ENV} = \"production\" ]; then node --es-module-specifier-resolution=node server.js;  else react-scripts start; fi",
     "start-backend": "npm run build && if [ ${NODE_ENV} = \"production\" ]; then npm run start-frontend; else node --es-module-specifier-resolution=node server.js; fi",
     "build": "react-scripts build && npm run build-api",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
+    "runworkeronce": "node --es-module-specifier-resolution=node runWorkerOnce.js", 
     "custupdate": "node --es-module-specifier-resolution=node runCustUpdate.js",
     "build-api": "tsc -p tsconfig-api.json",
     "scheduler": "node --es-module-specifier-resolution=node schedule.js"

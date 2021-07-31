@@ -73,5 +73,5 @@
     "forceConsistentCasingInFileNames": true        /* Disallow inconsistently-cased references to the same file. */
   },
   "include": ["./api"],
-  "files": ["server.ts","schedule.ts","worker.ts"]
+  "files": ["server.ts","schedule.ts","worker.ts","runCustUpdate.ts","runWorkerOnce.ts"]
 }

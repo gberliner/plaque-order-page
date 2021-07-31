@@ -23,7 +23,7 @@ if (process.env.NODE_ENV === "production" && process.env.STAGING !== 'true') {
 }
 
 async function checkForAndCreateCustomerInSquare(row: any,client: Square.Client, pgclient: pg.Client,rowFromCustomer: boolean) {
-    let email = row['email'];
+    let email = row[rowFromCustomer?'email':'custemail'];
     let note: string = ""
     let origEmail = email
     let legitRes = await legit(email);
@@ -132,7 +132,7 @@ export async function worker(){
             rejectUnauthorized: false
         }
     })
-    let newOrders:  string[] = []
+    let newOrders:  Array<any>
  
     let sqClient = new Square.Client(configSquare)
 
@@ -144,14 +144,18 @@ export async function worker(){
             await Promise.all(((ra: Array<unknown>): Array<Promise<unknown >> =>{
                 let promiseRa = new Array<Promise<unknown > >(ra.length);
                 ra.forEach(async (row)=>{
-                    promiseRa.push(checkForAndCreateCustomerInSquare(row, sqClient, pgClient, true))
+                    promiseRa.push(checkForAndCreateCustomerInSquare(row, sqClient, pgClient, false))
                 })
                 return promiseRa;
             })(results.rows))
         } else {
             throw(new Error('too few orders to act on'))            
         }
-
+        let resultsFromDb = await pgClient.query("select sqorderid from custorders where status='new'");
+        newOrders = new Array<any>(resultsFromDb.rowCount)
+        resultsFromDb.rows.forEach((row,idx)=>{
+            newOrders[idx] = row['sqorderid']
+        })
         let retrieveOrderRequest: Square.BatchRetrieveOrdersRequest = {
             orderIds: newOrders
         }
@@ -170,7 +174,7 @@ export async function worker(){
                 order
             }
         })
-        let squareOrderUrlTemplate = squareUrlPrefix + (process.env.NODE_ENV as string === "sandbox" && process.env.STAGING === "true")?"sandbox":"" + squareUrlDashboardPrefix
+        let squareOrderUrlTemplate = squareUrlPrefix + (process.env.NODE_ENV === "test" || process.env.STAGING === "true"?"sandbox":"") + squareUrlDashboardPrefix
         if (newOrders.length >= 3) {
             let newOrderLinks = Array<string>(newOrders.length);
             newOrders.forEach((order,idx)=>{
