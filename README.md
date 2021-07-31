@@ -1,6 +1,6 @@
 # simple order form, wired up to square and sendgrid, for processing payments and sending customer and other email updates
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A simple order form, which uploads customer, order, and payment information to Square, where they can be managed via the latter's administrative web portal, and notifies administrators when action is required on new orders. The front end features a leaflet map tile and lets users pick points on the map, in lieu of typing in the address. (But regardless of how it is entered, the address is verified with an Overpass query before the user is prompted for further order and payment information.)
 
 It is designed to run on heroku using their free tier, together with the freely bundled postgresql database provided by them there.
 A good, fast way to test this out is to acquire suitable api keys for square and twilio sendgrid and set them as environment variables in a convenient developement environment like gitpod. Everything here is intended to rely solely on services that can be fully sandbox tested without a credit card or financial commitment. (A Heroku Procfile is already included.)
