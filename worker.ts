@@ -6,7 +6,8 @@ import { v1PhoneNumberSchema } from 'square/dist/models/v1PhoneNumber';
 import legit from 'legit'
 
 const notificationEmail = process.env.NOTIFICATION_RECIPIENT || 'guy.berliner@gmail.com'
-
+const squareUrlPrefix = 'https://squareup'
+const squareUrlDashboardPrefix = '.com/dashboard/orders/overview/ '
 const configSandbox: Partial<Square.Configuration> = {
     accessToken: process.env.SQUARE_ACCESS_TOKEN,
     environment: Square.Environment.Sandbox,
@@ -139,12 +140,15 @@ export async function worker(){
         await pgClient.connect();
 
         let results = await pgClient.query(`select * from custorders where status='new';`)
-        results.rows.forEach(async (row) => {
-            let squrderid = row["sqorderid"];
-            newOrders.push(squrderid);
-            await checkForAndCreateCustomerInSquare(row,sqClient,pgClient,false)
-        })
-        if (results.rows.length < 3) {
+        if (results.rowCount >= 3) {
+            await Promise.all(((ra: Array<unknown>): Array<Promise<unknown >> =>{
+                let promiseRa = new Array<Promise<unknown > >(ra.length);
+                ra.forEach(async (row)=>{
+                    promiseRa.push(checkForAndCreateCustomerInSquare(row, sqClient, pgClient, true))
+                })
+                return promiseRa;
+            })(results.rows))
+        } else {
             throw(new Error('too few orders to act on'))            
         }
 
@@ -166,8 +170,12 @@ export async function worker(){
                 order
             }
         })
-
+        let squareOrderUrlTemplate = squareUrlPrefix + (process.env.NODE_ENV as string === "sandbox")?"sandbox":"" + squareUrlDashboardPrefix
         if (newOrders.length >= 3) {
+            let newOrderLinks = Array<string>(newOrders.length);
+            newOrders.forEach((order,idx)=>{
+                newOrderLinks[idx] = `<a href="${squareUrlPrefix}${order}">order id: ${order}</a>`
+            })
             await sendemail({
                 recipient: notificationEmail,
                 sender: 'chair@brooklyn-neighborhood.org',
@@ -175,7 +183,7 @@ export async function worker(){
             }, {
                 text: "The following orders have come in and await your approval. Please log into the order system and mark them \"in progress\" or \"complete\" as appropriate:  " + newOrders.join("\n"),
                 html: `The following orders have come in and await your approval:<br>
-                    <ul><li>${newOrders.join('</li><li>')}</li></ul><br>Please log into the order system and move them to 'in progress' or 'completed' as appropriate.
+                    <ul><li>${newOrderLinks.join('</li><li>')}</li></ul><br>Please log into the order system and move them to 'in progress' or 'completed' as appropriate.
                 `
             })
             await pgClient.query(`update custorders set status='t_notified' where status='new'`);
