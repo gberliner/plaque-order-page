@@ -3,6 +3,7 @@ import Square, {CatalogApi,OrdersApi,CustomersApi   } from 'square';
 import {nanoid} from 'nanoid';
 import {sendemail,EmailBody,EmailHeader} from './sendemail'
 import { v1PhoneNumberSchema } from 'square/dist/models/v1PhoneNumber';
+import legit from 'legit'
 
 const notificationEmail = process.env.NOTIFICATION_RECIPIENT || 'guy.berliner@gmail.com'
 
@@ -22,16 +23,24 @@ if (process.env.NODE_ENV === "production" && process.env.STAGING !== 'true') {
 
 async function checkForAndCreateCustomerInSquare(row: any,client: Square.Client, pgclient: pg.Client,rowFromCustomer: boolean) {
     let email = row['email'];
+    let legitRes = await legit(email);
+    if (!legitRes.isValid) {
+        console.error(`Skipping customer email address ${email}, no valid mx!`)
+        return
+    }
+
     let searchFilter: Square.SearchCustomersRequest = {
 
     }
+    
     let emailQuery: Square.CustomerQuery = {
 
     }
     let emailQueryFilter: Square.CustomerFilter = {
-
+        emailAddress: {
+            exact: email
+        }
     }
-    emailQueryFilter.emailAddress = email;
     emailQuery.filter = emailQueryFilter
     searchFilter.query = emailQuery;
     searchFilter.limit = BigInt(1);
@@ -58,7 +67,11 @@ async function checkForAndCreateCustomerInSquare(row: any,client: Square.Client,
         let createCustomerRequest: Square.CreateCustomerRequest = {
 
         }
-        createCustomerRequest.address = row["address"];
+        createCustomerRequest.address = {
+            addressLine1: row["address"],
+            firstName: firstname,
+            lastName: lastname,
+        }
         createCustomerRequest.emailAddress = email
         createCustomerRequest.phoneNumber = "1" + phone
         createCustomerRequest.givenName = firstname
@@ -78,22 +91,24 @@ export async function populateCustomersInSquare() {
     let connectionString = process.env.DATABASE_URL 
     let pgClient = new pg.Client({
         connectionString,
+        connectionTimeoutMillis: 20000,
         ssl: {
             rejectUnauthorized: false
         }
     })
-    pgClient.connect()
     try{
+        await pgClient.connect()
+
         let res = await pgClient.query("select * from customer where sqid is null")
  
         if (res.rowCount > 0) {
-            res.rows.forEach(async row=>{
+            await res.rows.forEach(async row=>{
                 await checkForAndCreateCustomerInSquare(row,sqClient,pgClient,true)
             })
         }
     
     } finally {
-        pgClient.end()
+        await pgClient.end()
     }
 }
 
@@ -111,8 +126,9 @@ export async function worker(){
  
     let sqClient = new Square.Client(configSquare)
 
-    pgClient.connect();
     try {
+        await pgClient.connect();
+
         let results = await pgClient.query(`select * from custorders where status='new';`)
         results.rows.forEach(async (row) => {
             let squrderid = row["sqorderid"];

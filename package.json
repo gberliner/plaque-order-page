@@ -4,6 +4,7 @@
   "private": true,
   "proxy": "http://localhost:8080",
   "type": "module",
+  "types": "",
   "dependencies": {
     "@derhuerst/query-overpass": "^2.0.0",
     "@material-ui/core": "^4.12.1",
@@ -31,6 +32,7 @@
     "concurrently": "^6.2.0",
     "express": "^4.17.1",
     "leaflet": "1.7.1",
+    "legit": "^1.0.9",
     "node-fetch": "^2.6.1",
     "node-postgres": "^0.6.2",
     "node-schedule": "^2.0.0",
@@ -49,12 +51,14 @@
     "web-vitals": "^1.1.2"
   },
   "scripts": {
+    "newstart": "if [ ${NODE_ENV} = \"sandbox\" ]; then npm run start-backend && npm run start-frontend; else npm run start-frontend; fi",
     "start": "if [ ${NODE_ENV} = \"sandbox\" ]; then concurrently \"npm run start-backend\" \"npm run start-frontend\"; else npm run start-frontend; fi",
     "start-frontend": "if [ ${NODE_ENV} = \"production\" ]; then node --es-module-specifier-resolution=node server.js;  else react-scripts start; fi",
     "start-backend": "npm run build && if [ ${NODE_ENV} = \"production\" ]; then npm run start-frontend; else node --es-module-specifier-resolution=node server.js; fi",
     "build": "react-scripts build && npm run build-api",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
+    "custupdate": "node --es-module-specifier-resolution=node runCustUpdate.js",
     "build-api": "tsc -p tsconfig-api.json",
     "scheduler": "node --es-module-specifier-resolution=node schedule.js"
   },
@@ -77,10 +81,10 @@
     ]
   },
   "devDependencies": {
+    "chokidar": "3.5.2",
     "dotenv": "^8.2.0",
     "heroku": "^7.56.1",
-    "heroku-cli": "^7.0.9",
-    "chokidar":"3.5.2"
+    "heroku-cli": "^7.0.9"
   },
   "engines": {
     "node": "16.5.0"
