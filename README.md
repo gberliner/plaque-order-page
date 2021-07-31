@@ -5,6 +5,8 @@ A simple order form, which uploads customer, order, and payment information to S
 It is designed to run on heroku using their free tier, together with the freely bundled postgresql database provided by them there.
 A good, fast way to test this out is to acquire suitable api keys for square and twilio sendgrid and set them as environment variables in a convenient developement environment like gitpod. Everything here is intended to rely solely on services that can be fully sandbox tested without a credit card or financial commitment. (A Heroku Procfile is already included.)
 
+Presumably, the database could be made optional, or ripped out entirely, if that were more convenient, and Square itself instead relied on exclusively (eg, if you wanted to host this somewhere that did not offer any complementary PAAS database). But initially, the code has the assumption of such a database being available for mirroring the Square data hardwired into it.
+
 The rest of this README is boilerplate that came from create-react-app, which was used to scaffold this work.
 
 ## Available Scripts
