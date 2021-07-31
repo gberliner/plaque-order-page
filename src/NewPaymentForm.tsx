@@ -237,9 +237,6 @@ export class NewPaymentForm extends React.Component<NewPaymentFormProps,NewPayme
                             </Button>
                         </DialogActions>
                     </Dialog>
-                    <div id="invisible-card">
-                        <div id="card-container"></div>
-                    </div>
                 </div>
                 )
         }
