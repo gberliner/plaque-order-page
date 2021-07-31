@@ -1,4 +1,4 @@
-# simple order form, wired up to square and sendgrid, for processing payments and sending customer and other email updates
+# simple order form, wired up to Square and Sendgrid, for processing payments and sending customer and other email updates
 
 A simple order form, which uploads customer, order, and payment information to Square, where they can be managed via the latter's administrative web portal, and notifies administrators when action is required on new orders. The front end features a leaflet map tile and lets users pick points on the map, in lieu of typing in the address. (But regardless of how it is entered, the address is verified with an Overpass query before the user is prompted for further order and payment information.)
 
