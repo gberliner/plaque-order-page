@@ -138,6 +138,11 @@ export default function createPlaqueOrder(req:Request, res:Response, next:NextFu
                             if (1 > custqueryres.rowCount) {
                                 await pgClient.query(`insert into customer (firstname,lastname,email,address,phone) values('${firstname}', '${lastname}', '${email}','${address}','${phone}')`) 
                             }
+                            // join custorders and customer on custorders.custid=customer.id
+                            let newCustRes = await pgClient.query(`update custorders set custid=(select id from customer where customer.email=${email}) where custorders.email = ${email}`)
+                            if (newCustRes.rowCount < 1) {
+                                console.error(`failed adding foreign custid key to custorders for email address ${email}`)
+                            } 
                         } catch (error) {
                             console.error(error?.message)
                             next("Failed to update table CustOrders: " + error?.message??" no further details available")
