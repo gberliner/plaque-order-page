@@ -31,7 +31,6 @@ import pg from 'pg';
     }
   } */
 
-//TODO: change this to pick up from process.env
 const NOTIFICATION_URL = 'https://dementia-praecox.herokuapp.com/api/order-fulfillment-updated';
 
 const connectionString = process.env.DATABASE_URL
@@ -48,9 +47,15 @@ function isFromSquare(request: Request, sigKey: string, readFromHeaders=false) {
   if (readFromHeaders) {
     url = "https://" + request.hostname + "/api/order-fulfillment-updated"
   }
+  
   hmac.update(url + JSON.stringify(request.body));
   const hash = hmac.digest('base64');
-  return request.get('X-Square-Signature') === hash;
+  let retval = request.get('X-Square-Signature') === hash;
+  if (!retval) {
+    console.error(`authorization to webhook endpoint failed: site ${url}`)
+    console.error(`request body: ${JSON.stringify(request.body)}`);
+  }
+  return retval
 }
 
 export async function handleOrderFulfillmentUpdate(req: Request, res: Response, next: NextFunction) {
