@@ -16,14 +16,14 @@ app.use(express.static(path.join(__dirname, 'build')));
 
 //Note: bypass auto-parsing json for handling the Square webhook "order.fulfillment.update"
 //(we will use a custom parser tailored for these messages instead): 
-
-app.use(function (req,res,next) {
-	if (!!req.get("X-Square-Signature")) {
-		return express.text()
-	} else {
-		return express.json()
+app.use(function(req,res,next) {
+	if (!!req.get('X-Square-Signature')) {
+		(express.text())(req,res,next)
+	}else {
+		(express.json()(req,res,next))
 	}
-})		
+})
+
 app.post('/api/order-fulfillment-updated', handleOrderFulfillmentUpdate);
 app.get('/ping', function (req, res) {
  return res.send('pong');
