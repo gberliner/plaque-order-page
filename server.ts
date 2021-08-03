@@ -1,4 +1,5 @@
 import express from 'express';
+import bodyParser from 'body-parser';
 import path from 'path';
 import parser, {OptionsText} from 'body-parser'
 import processPayment from './api/paymentRcvd';
@@ -17,10 +18,8 @@ app.use(express.static(path.join(__dirname, 'build')));
 //(we will use a custom parser tailored for these messages instead): 
 
 app.use((req,res,next)=> {
-	if (req.get("X-Square-Signature")) {
-		express.text({
-			type: "application/json"
-		})
+	if (!!req.get("X-Square-Signature")) {
+		express.text()
 	}
 })
 		
