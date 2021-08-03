@@ -17,7 +17,7 @@ app.use(express.static(path.join(__dirname, 'build')));
 //Note: bypass auto-parsing json for handling the Square webhook "order.fulfillment.update"
 //(we will use a custom parser tailored for these messages instead): 
 
-app.use((req,res,next)=> {
+app.use(function (req,res,next) {
 	if (!!req.get("X-Square-Signature")) {
 		express.text()
 	}
