@@ -2,8 +2,15 @@ import pg from 'pg';
 import Square, {CatalogApi,OrdersApi,CustomersApi   } from 'square';
 import {nanoid} from 'nanoid';
 import {sendemail,EmailBody,EmailHeader} from './sendemail'
-import { v1PhoneNumberSchema } from 'square/dist/models/v1PhoneNumber';
+import {UpdateOrderRequest} from 'square/dist/models/updateOrderRequest'
+import {SearchOrdersRequest } from 'square/dist/models/searchOrdersRequest';
+import { SearchOrdersQuery } from 'square/dist/models/searchOrdersQuery';
+import { SearchOrdersFilter } from 'square/dist/models/searchOrdersFilter';
+import { SearchOrdersFulfillmentFilter } from 'square/dist/models/searchOrdersFulfillmentFilter';
+/// <reference path="./types/legit/legit.d.ts" />
 import legit from 'legit'
+//import { SearchOrdersQuery, SearchOrdersRequest, SearchOrdersFulfillmentFilter, SearchOrdersFilter } from 'square-connect';
+//import { UpdateOrderRequest, Order } from 'square-connect';
 
 const notificationEmail = process.env.NOTIFICATION_RECIPIENT || 'guy.berliner@gmail.com'
 const squareUrlPrefix = 'https://squareup'
@@ -21,6 +28,16 @@ let configSquare = configSandbox;
 if (process.env.NODE_ENV === "production" && process.env.STAGING !== 'true') {
     configSquare = configProd
 }
+
+const sqClient = new Square.Client(configSquare)
+const connectionString = process.env.DATABASE_URL
+const pgClient = new pg.Client({
+    connectionString,
+    ssl: {
+        rejectUnauthorized: false
+    }
+
+})
 
 async function checkForAndCreateCustomerInSquare(row: any,client: Square.Client, pgclient: pg.Client,rowFromCustomer: boolean) {
     let email = row[rowFromCustomer?'email':'custemail'];
@@ -61,7 +78,7 @@ async function checkForAndCreateCustomerInSquare(row: any,client: Square.Client,
     }
 
     if (!rowFromCustomer) {
-        customerLocal = await pgclient.query(`select * from Customer where email='${email}'`)
+        customerLocal = await pgclient.query(`select * from Customer where email='${origEmail}'`)
         if (customerLocal.rowCount >= 1) {
             phone = customerLocal.rows[0]['phone']
         }    
@@ -88,22 +105,13 @@ async function checkForAndCreateCustomerInSquare(row: any,client: Square.Client,
         let sqid = ""
         if (sqCustRes?.result !== undefined && sqCustRes?.result?.customer !== undefined && sqCustRes?.result?.customer.id !== undefined) {
             sqid = sqCustRes.result.customer.id;
+            await pgclient.query(`update customer set sqid='${sqid}' where email='${origEmail}'`)
         }
-        await pgclient.query(`update customer set sqid='${sqid}' where email='${origEmail}'`)
     }
 }
 
 export async function populateCustomersInSquare() {
-    const sqClient = new Square.Client(configSquare)
     
-    let connectionString = process.env.DATABASE_URL 
-    let pgClient = new pg.Client({
-        connectionString,
-        connectionTimeoutMillis: 20000,
-        ssl: {
-            rejectUnauthorized: false
-        }
-    })
     try{
         await pgClient.connect()
 
@@ -125,21 +133,13 @@ export async function populateCustomersInSquare() {
 // to be run as scheduled job
 export async function worker(){
 
-    let connectionString = process.env.DATABASE_URL 
-    let pgClient = new pg.Client({
-        connectionString,
-        ssl: {
-            rejectUnauthorized: false
-        }
-    })
-    let newOrders:  Array<any>
+    let newOrders:  Array<string>
  
-    let sqClient = new Square.Client(configSquare)
 
     try {
         await pgClient.connect();
 
-        let results = await pgClient.query(`select * from custorders where status='new';`)
+        let results = await pgClient.query(`select * from custorders join customer on custorders.custid=customer.id where status='new';`)
         if (results.rowCount >= 3) {
             await Promise.all(((ra: Array<unknown>): Array<Promise<unknown >> =>{
                 let promiseRa = new Array<Promise<unknown > >(ra.length);
@@ -152,7 +152,7 @@ export async function worker(){
             throw(new Error('too few orders to act on'))            
         }
         let resultsFromDb = await pgClient.query("select sqorderid from custorders where status='new'");
-        newOrders = new Array<any>(resultsFromDb.rowCount)
+        newOrders = new Array<string>(resultsFromDb.rowCount)
         resultsFromDb.rows.forEach((row,idx)=>{
             newOrders[idx] = row['sqorderid']
         })
@@ -162,24 +162,49 @@ export async function worker(){
 
         console.error(`Orders ${newOrders.join(" ")} ready for treasurer review`)
         let newSqOrders = await sqClient.ordersApi.batchRetrieveOrders(retrieveOrderRequest)
-        let idx = 0
-        newSqOrders?.result?.orders?.forEach(order => {
-            if (order.fulfillments !== undefined && order.fulfillments[0].pickupDetails !== undefined) {
-                (order.fulfillments[0].pickupDetails.note as string) = newOrders[idx]
-            }
+        await Promise.all(((ra: Square.Order[]): Array<Promise<unknown>> => {
+            let promiseRa = new Array<Promise<unknown>>(ra.length);
+            ra.forEach(async (order: Square.Order,idx) => {
+                if (order.fulfillments !== undefined && order.fulfillments[0].pickupDetails !== undefined) {
+                    (order.fulfillments[0].pickupDetails.note as string) = newOrders[idx]
+                }
+                
+                promiseRa.push((async ()=> {
+                    let sqCustId: string;
+                    try {
+                        let custIdRes = await pgClient.query(`select sqid from customer where id=(select custid from custorders where sqorderid='${order.id}'`);
+                        if (custIdRes.rowCount >= 1) {
+                            sqCustId = custIdRes.rows[0]["custid"];
+                            order.customerId = sqCustId
+                        }
+                        let updateOrderRequest: Square.UpdateOrderRequest = {
+                            idempotencyKey: nanoid(),
+                            order
+                        }
+                        await sqClient.ordersApi.updateOrder(order.id as string, updateOrderRequest)
+                    } catch (error) {
+                        console.error("error updating order for sqorderid = ${order.id}: ")
+                        console.error(error)
+                    }
+                    return;
+                })())
+            })
+            return promiseRa;
+        })(newSqOrders?.result?.orders as Square.Order[]))
 
-            idx++
-            let updateOrderRequest: Square.UpdateOrderRequest = {
-                idempotencyKey: nanoid(),
-                order
-            }
-        })
+
+
+
         let squareOrderUrlTemplate = squareUrlPrefix + (process.env.NODE_ENV === "test" || process.env.STAGING === "true"?"sandbox":"") + squareUrlDashboardPrefix
         if (newOrders.length >= 3) {
             let newOrderLinks = Array<string>(newOrders.length);
+
+
+
             newOrders.forEach((order,idx)=>{
-                newOrderLinks[idx] = `<a href="${squareOrderUrlTemplate}${order}">order id: ${order}</a>`
+                newOrderLinks[idx] = `<a href="${squareOrderUrlTemplate + order}">order id: ${order}</a>`
             })
+
             await sendemail({
                 recipient: notificationEmail,
                 sender: 'chair@brooklyn-neighborhood.org',
@@ -202,4 +227,62 @@ export async function worker(){
         pgClient.end()
     }
 
+}
+
+export async function linkSquareOrdersToCustomers() {
+    // look for new orders
+    let fulfillmentFilterNew: SearchOrdersFulfillmentFilter = {
+        fulfillmentStates: ["PROPOSED"]
+    }
+    let searchOF: SearchOrdersFilter = {
+        fulfillmentFilter: fulfillmentFilterNew
+    }
+    let orderSearchQuery: SearchOrdersQuery = {
+        filter: searchOF
+    }
+    
+    let orderSearchRequest: SearchOrdersRequest = {
+        query: orderSearchQuery
+    }
+    orderSearchRequest.locationIds = [process.env.REACT_APP_LOCATION_ID as string]
+    try {
+        await pgClient.connect()
+        let res = await sqClient.ordersApi.searchOrders(orderSearchRequest)
+        res.result.orders
+        if (res?.result?.orders?.length !== undefined && res?.result?.orders?.length > 0) {
+            await Promise.all(((ra: Array<Square.Order>): Array<Promise<void >> =>{
+                let promiseRa = new Array<Promise<void> >(ra.length);
+                ra.forEach((order,idx) => {
+                    promiseRa.push(   
+                        (async (order,idx)=>{
+                            try {
+                                if (!order.customerId) {
+                                    let custid: string;
+                                    let custidres = await pgClient.query(`select sqid,sqorderid from customer join custorders on customer.id=custorders.custid where sqorderid='${order.id}'`)
+                                    if (custidres.rowCount > 0) {
+                                        custid = custidres.rows[0]['sqid'];
+                                        let updatedOrder = order;
+                                        updatedOrder.customerId = custid;
+                                        let sqOrderUpdateRequest: UpdateOrderRequest = {
+                                            idempotencyKey: nanoid(),
+                                            order: updatedOrder
+                                        }
+                                        await sqClient.ordersApi.updateOrder(order.id as string, sqOrderUpdateRequest)
+                                    }
+                                }
+                            } catch (error) {
+                                console.error(`error updating order ${order.id}`)
+                                console.error(error)
+                            }
+                        })(order,idx))
+                })
+                return promiseRa
+            })(res?.result?.orders as Square.Order[]))
+        }
+        
+    } catch(error) {
+        console.error(error)
+    } finally {
+        pgClient.end()
+    }
 }

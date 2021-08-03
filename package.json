@@ -4,8 +4,9 @@
   "private": true,
   "proxy": "http://localhost:8080",
   "type": "module",
-  "types": "",
+  "typings": "./types/index.d.ts",
   "dependencies": {
+    "@craco/craco": "^6.2.0",
     "@derhuerst/query-overpass": "^2.0.0",
     "@material-ui/core": "^4.12.1",
     "@material-ui/icons": "^4.11.2",
@@ -58,8 +59,9 @@
     "build": "react-scripts build && npm run build-api",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "runworkeronce": "node --es-module-specifier-resolution=node runWorkerOnce.js", 
+    "runworkeronce": "node --es-module-specifier-resolution=node runWorkerOnce.js",
     "custupdate": "node --es-module-specifier-resolution=node runCustUpdate.js",
+    "linkOrdersToCustomers":"node --es-module-specifier-resolution=node runLinkSquareOrdersToCustomers.js",
     "build-api": "tsc -p tsconfig-api.json",
     "scheduler": "node --es-module-specifier-resolution=node schedule.js"
   },
