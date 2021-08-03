@@ -1,4 +1,4 @@
-import Square, {CatalogApi,OrdersApi} from 'square';
+import Square, {OrdersApi} from 'square';
 import {Request, Response, NextFunction, RequestHandler} from 'express';
 import pg from 'pg';
 import {ExpressHandler} from '../interfaces/handlers'

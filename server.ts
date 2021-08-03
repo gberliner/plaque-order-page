@@ -5,13 +5,16 @@ import {handlePaymentErrors} from './api/handlePaymentErrors';
 import {createPlaqueOrder} from './api/createOrder';
 import {checkPrice} from './api/checkPrice';
 import { fileURLToPath } from 'url';
+import { handleOrderFulfillmentUpdate } from './api/orderFulfillmentUpdate';
 //@ts-ignore
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express();
 app.use(express.static(path.join(__dirname, 'build')));
 
-
+//Note: bypass auto-parsing json for handling the Square webhook "order.fulfillment.update"
+//(we will use a custom parser tailored for these messages instead): 
+app.post('/api/order-fulfillment-update', handleOrderFulfillmentUpdate);
 app.use(express.json());
 app.get('/ping', function (req, res) {
  return res.send('pong');
