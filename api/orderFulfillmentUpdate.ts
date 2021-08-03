@@ -32,7 +32,7 @@ import pg from 'pg';
   } */
 
 //TODO: change this to pick up from process.env
-const NOTIFICATION_URL = 'https://dementia-praecox.herokuapp.com/order-fulfillment-updated';
+const NOTIFICATION_URL = 'https://dementia-praecox.herokuapp.com/api/order-fulfillment-updated';
 
 const connectionString = process.env.DATABASE_URL
 const pgClient = new pg.Client({
@@ -42,9 +42,13 @@ const pgClient = new pg.Client({
   }
 })
 
-function isFromSquare(request: Request, sigKey: string) {
+function isFromSquare(request: Request, sigKey: string, readFromHeaders=false) {
   const hmac = createHmac('sha1', sigKey);
-  hmac.update(NOTIFICATION_URL + JSON.stringify(request.body));
+  let url = NOTIFICATION_URL;
+  if (readFromHeaders) {
+    url = "https://" + request.hostname + "/api/order-fulfillment-updated"
+  }
+  hmac.update(url + JSON.stringify(request.body));
   const hash = hmac.digest('base64');
   return request.get('X-Square-Signature') === hash;
 }
@@ -52,7 +56,12 @@ function isFromSquare(request: Request, sigKey: string) {
 export async function handleOrderFulfillmentUpdate(req: Request, res: Response, next: NextFunction) {
   // verify legit request
   //TODO: add this config var!:
-  if (!isFromSquare(req,process.env.ORDERUPDATE_WEBHOOK_SIGKEY as string)) {
+  let readHostFromHeaders = false;
+  if (!!process.env.READ_HOST_FROM_HEADERS && process.env.READ_HOST_FROM_HEADERS === "true") {
+    readHostFromHeaders = true;
+  }
+
+  if (!isFromSquare(req,process.env.ORDERUPDATE_WEBHOOK_SIGKEY as string, readHostFromHeaders)) {
     console.error("unauthorized request origin, not originating from square!")
     next("call to order-fulfillment-updated from unauthorized source")
   }
