@@ -19,12 +19,12 @@ app.use(express.static(path.join(__dirname, 'build')));
 
 app.use(function (req,res,next) {
 	if (!!req.get("X-Square-Signature")) {
-		express.text()
+		return express.text()
+	} else {
+		return express.json()
 	}
-})
-		
+})		
 app.post('/api/order-fulfillment-updated', handleOrderFulfillmentUpdate);
-app.use(express.json());
 app.get('/ping', function (req, res) {
  return res.send('pong');
 });
