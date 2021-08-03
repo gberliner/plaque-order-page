@@ -1,5 +1,6 @@
 import {Request, Response, NextFunction, RequestHandler} from 'express';
 import {Convert as JSONtoOrderUpdateObj} from './orderUpdateWebhookPayload'
+import {createHmac} from 'crypto'
 import pg from 'pg';
 /* example json payload 
 {
@@ -30,6 +31,9 @@ import pg from 'pg';
     }
   } */
 
+//TODO: change this to pick up from process.env
+const NOTIFICATION_URL = 'https://dementia-praecox.herokuapp.com/order-fulfillment-updated';
+
 const connectionString = process.env.DATABASE_URL
 const pgClient = new pg.Client({
   connectionString,
@@ -38,8 +42,22 @@ const pgClient = new pg.Client({
   }
 })
 
+function isFromSquare(request: Request, sigKey: string) {
+  const hmac = createHmac('sha1', sigKey);
+  hmac.update(NOTIFICATION_URL + JSON.stringify(request.body));
+  const hash = hmac.digest('base64');
+  return request.get('X-Square-Signature') === hash;
+}
+
 export async function handleOrderFulfillmentUpdate(req: Request, res: Response, next: NextFunction) {
+  // verify legit request
+  //TODO: add this config var!:
+  if (!isFromSquare(req,process.env.ORDERUPDATE_WEBHOOK_SIGKEY as string)) {
+    console.error("unauthorized request origin, not originating from square!")
+    next("call to order-fulfillment-updated from unauthorized source")
+  }
   let fulfillmentUpdateJson = req.body;
+
   let orderUpdateObj = JSONtoOrderUpdateObj.toOrderUpdateWebhookPayload(fulfillmentUpdateJson)
   if (orderUpdateObj?.type === "order") {
     let sqOrderId = orderUpdateObj.data.id

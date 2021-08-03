@@ -14,7 +14,7 @@ app.use(express.static(path.join(__dirname, 'build')));
 
 //Note: bypass auto-parsing json for handling the Square webhook "order.fulfillment.update"
 //(we will use a custom parser tailored for these messages instead): 
-app.post('/api/order-fulfillment-update', handleOrderFulfillmentUpdate);
+app.post('/api/order-fulfillment-updated', handleOrderFulfillmentUpdate);
 app.use(express.json());
 app.get('/ping', function (req, res) {
  return res.send('pong');
