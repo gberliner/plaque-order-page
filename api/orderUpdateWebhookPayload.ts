@@ -37,7 +37,7 @@ export interface OrderFulfillmentUpdated {
 export interface FulfillmentUpdate {
     fulfillmentUid: string;
     newState:       string;
-    oldState:       string;
+    oldState?:       string;
 }
 
 // Converts JSON strings to/from your types
