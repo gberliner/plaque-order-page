@@ -59,6 +59,7 @@ function isFromSquare(request: Request, sigKey: string, readFromHeaders=false) {
     console.error(`authorization to webhook endpoint failed: site ${url}`)
     console.error(`request body: ${request.body}`);
     console.error(`sig: ${process.env.ORDERUPDATE_WEBHOOK_SIGKEY}`)
+    console.error(`content-length ${request.get('Content-Length')}`)
     console.error(`header digest: ${request.get('X-Square-Signature')}`)
     console.error(`computed hash: ${hash}`)
     console.error(`url: ${NOTIFICATION_URL}`)
