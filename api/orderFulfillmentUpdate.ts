@@ -34,12 +34,20 @@ import pg from 'pg';
 const NOTIFICATION_URL = 'https://dementia-praecox.herokuapp.com/api/order-fulfillment-updated';
 
 const connectionString = process.env.DATABASE_URL
-const pgClient = new pg.Client({
-  connectionString,
-  ssl: {
-    rejectUnauthorized: false
+const pool = new pg.Pool(
+  {
+    connectionString,
+    ssl: {
+      rejectUnauthorized: false
+    }
   }
-})
+)
+// const pgClient = new pg.Client({
+//   connectionString,
+//   ssl: {
+//     rejectUnauthorized: false
+//   }
+// })
 
 function isFromSquare(request: Request, sigKey: string, readFromHeaders=false) {
   const hmac = createHmac('sha1', sigKey);
@@ -62,7 +70,7 @@ function isFromSquare(request: Request, sigKey: string, readFromHeaders=false) {
     console.error(`content-length ${request.get('Content-Length')}`)
     console.error(`header digest: ${request.get('X-Square-Signature')}`)
     console.error(`computed hash: ${hash}`)
-    console.error(`url: ${NOTIFICATION_URL}`)
+    console.error(`url: ${url}`)
   }
   return retval
 }
@@ -89,16 +97,15 @@ export function handleOrderFulfillmentUpdate(req: Request, res: Response, next: 
     (async function () {
       let arrowFunc = async () => {
         try {
-          await pgClient.connect()
           console.warn(`Updating order status for order ${sqOrderId} from ${oldState} to ${newState}`)
-          await pgClient.query(`update custorders set status='${newState}' where sqorderid='${sqOrderId}'`)
+          await pool.query(`update custorders set status='${newState}' where sqorderid='${sqOrderId}'`)
           res.json({"result":"success"})
         } catch (error) {
           console.error(`Error updating local db with order fulfillment change on order ${sqOrderId}: `)
           console.error(error)
           res.json({"error": error.message})
         } finally {
-          pgClient.end()
+          await pool.end()
         }
       }
       await arrowFunc();
