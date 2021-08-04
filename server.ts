@@ -19,7 +19,9 @@ app.use(express.static(path.join(__dirname, 'build')));
 app.use(function(req,res,next) {
 	if (!!req.get('X-Square-Signature')) {
 		req.headers['content-type'] = 'text/plain';
-		(express.text())(req,res,next)
+		(express.text({
+			type: '*/*'
+		}))(req,res,next)
 	}else {
 		(express.json()(req,res,next))
 	}
