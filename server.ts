@@ -12,6 +12,7 @@ import { handleOrderFulfillmentUpdate } from './api/orderFulfillmentUpdate';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express();
+app.enable('trust proxy');
 app.use(express.static(path.join(__dirname, 'build')));
 
 //Note: bypass auto-parsing json for handling the Square webhook "order.fulfillment.update"
