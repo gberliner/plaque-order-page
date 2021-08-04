@@ -104,8 +104,6 @@ export function handleOrderFulfillmentUpdate(req: Request, res: Response, next: 
           console.error(`Error updating local db with order fulfillment change on order ${sqOrderId}: `)
           console.error(error)
           res.json({"error": error.message})
-        } finally {
-          await pool.end()
         }
       }
       await arrowFunc();
