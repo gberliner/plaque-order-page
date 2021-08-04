@@ -79,29 +79,27 @@ export function handleOrderFulfillmentUpdate(req: Request, res: Response, next: 
   process.env.DEBUG==="true" && console.error("reading fulfillment notification from square endpoint")
   process.env.DEBUG==="true" && console.error(`payload was: ${fulfillmentUpdateJson}`)
   let orderUpdateObj = JSONtoOrderUpdateObj.toOrderUpdateWebhookPayload(fulfillmentUpdateJson)
-  if (orderUpdateObj?.type === "order") {
-    let sqOrderId = orderUpdateObj.data.id
-    let fulfillmentUpdateObj = orderUpdateObj.data.object.orderFulfillmentUpdated.fulfillmentUpdate[0]
-    let newState = fulfillmentUpdateObj.newState;
-    let oldState = fulfillmentUpdateObj.oldState;
+  let {data:{id,object:{orderFulfillmentUpdated:{fulfillmentUpdate:[{oldState,newState}]}}}}=orderUpdateObj;
+  let sqOrderId = id;
 
-    (async function () {
-      let arrowFunc = async () => {
-        try {
-          await pgClient.connect()
-          console.warn(`Updating order status for order ${sqOrderId} from ${oldState} to ${newState}`)
-          await pgClient.query(`update custorders set status='${newState}' where sqorderid='${sqOrderId}'`)
-          next()
-        } catch (error) {
-          console.error(`Error updating local db with order fulfillment change on order ${sqOrderId}: `)
-          console.error(error)
-          next(error)
-        } finally {
-          pgClient.end()
-        }
+  (async function () {
+    let arrowFunc = async () => {
+      try {
+        await pgClient.connect()
+        console.warn(`Updating order status for order ${sqOrderId} from ${oldState} to ${newState}`)
+        await pgClient.query(`update custorders set status='${newState}' where sqorderid='${sqOrderId}'`)
+        next()
+      } catch (error) {
+        console.error(`Error updating local db with order fulfillment change on order ${sqOrderId}: `)
+        console.error(error)
+        next(error)
+      } finally {
+        pgClient.end()
+        next();
       }
-      await arrowFunc();
     }
-    )();
+    await arrowFunc();
   }
+  )();
 }
+
