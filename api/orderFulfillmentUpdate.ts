@@ -77,33 +77,33 @@ export function handleOrderFulfillmentUpdate(req: Request, res: Response, next: 
 
   if (!isFromSquare(req, process.env.ORDERUPDATE_WEBHOOK_SIGKEY as string, readHostFromHeaders)) {
     console.error("unauthorized request origin, not originating from square!")
-    res.json({error: "unauthorized request source"})
-    next()  
-  }
-  let fulfillmentUpdateJson = req.body;
-  process.env.DEBUG==="true" && console.error("reading fulfillment notification from square endpoint")
-  process.env.DEBUG==="true" && console.error(`payload was: ${fulfillmentUpdateJson}`)
-  let orderUpdateObj = JSONtoOrderUpdateObj.toOrderUpdateWebhookPayload(fulfillmentUpdateJson)
-  let {data:{id,object:{orderFulfillmentUpdated:{fulfillmentUpdate:[{oldState,newState}]}}}}=orderUpdateObj;
-  let sqOrderId = id;
-
-  (async function () {
-    let arrowFunc = async () => {
-      try {
-        await pgClient.connect()
-        console.warn(`Updating order status for order ${sqOrderId} from ${oldState} to ${newState}`)
-        await pgClient.query(`update custorders set status='${newState}' where sqorderid='${sqOrderId}'`)
-        res.json({"result":"success"})
-      } catch (error) {
-        console.error(`Error updating local db with order fulfillment change on order ${sqOrderId}: `)
-        console.error(error)
-        res.json({"error": error.message})
-      } finally {
-        pgClient.end()
+    res.json({error: "unauthorized request source"})  
+  } else {
+    let fulfillmentUpdateJson = req.body;
+    process.env.DEBUG==="true" && console.error("reading fulfillment notification from square endpoint")
+    process.env.DEBUG==="true" && console.error(`payload was: ${fulfillmentUpdateJson}`)
+    let orderUpdateObj = JSONtoOrderUpdateObj.toOrderUpdateWebhookPayload(fulfillmentUpdateJson)
+    let {data:{id,object:{orderFulfillmentUpdated:{fulfillmentUpdate:[{oldState,newState}]}}}}=orderUpdateObj;
+    let sqOrderId = id;
+  
+    (async function () {
+      let arrowFunc = async () => {
+        try {
+          await pgClient.connect()
+          console.warn(`Updating order status for order ${sqOrderId} from ${oldState} to ${newState}`)
+          await pgClient.query(`update custorders set status='${newState}' where sqorderid='${sqOrderId}'`)
+          res.json({"result":"success"})
+        } catch (error) {
+          console.error(`Error updating local db with order fulfillment change on order ${sqOrderId}: `)
+          console.error(error)
+          res.json({"error": error.message})
+        } finally {
+          pgClient.end()
+        }
       }
+      await arrowFunc();
     }
-    await arrowFunc();
+    )();
   }
-  )();
 }
 
