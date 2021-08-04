@@ -1,4 +1,4 @@
-import {Request, Response, NextFunction, RequestHandler} from 'express';
+import {Request, Response, NextFunction, RequestHandler, response} from 'express';
 import {Convert as JSONtoOrderUpdateObj} from './orderUpdateWebhookPayload'
 import {createHmac} from 'crypto'
 import pg from 'pg';
@@ -92,14 +92,13 @@ export function handleOrderFulfillmentUpdate(req: Request, res: Response, next: 
         await pgClient.connect()
         console.warn(`Updating order status for order ${sqOrderId} from ${oldState} to ${newState}`)
         await pgClient.query(`update custorders set status='${newState}' where sqorderid='${sqOrderId}'`)
-        next()
+        res.json({"result":"success"})
       } catch (error) {
         console.error(`Error updating local db with order fulfillment change on order ${sqOrderId}: `)
         console.error(error)
-        next(error)
+        res.json({"error": error.message})
       } finally {
         pgClient.end()
-        next();
       }
     }
     await arrowFunc();

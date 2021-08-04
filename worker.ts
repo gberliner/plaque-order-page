@@ -141,7 +141,7 @@ export async function worker(){
     try {
         await pgClient.connect();
 
-        let results = await pgClient.query(`select * from custorders join customer on custorders.custid=customer.id where status='new';`)
+        let results = await pgClient.query(`select * from custorders join customer on custorders.custid=customer.id where status='new' OR status='PROPOSED';`)
         if (results.rowCount >= 3) {
             await Promise.all(((ra: Array<unknown>): Array<Promise<unknown >> =>{
                 let promiseRa = new Array<Promise<unknown > >(ra.length);
@@ -153,7 +153,7 @@ export async function worker(){
         } else {
             throw(new Error('too few orders to act on'))            
         }
-        let resultsFromDb = await pgClient.query("select sqorderid from custorders where status='new'");
+        let resultsFromDb = await pgClient.query("select sqorderid from custorders where status='new' OR status='PROPOSED'");
         newOrders = new Array<string>(resultsFromDb.rowCount)
         resultsFromDb.rows.forEach((row,idx)=>{
             newOrders[idx] = row['sqorderid']
@@ -217,7 +217,7 @@ export async function worker(){
                     <ul><li>${newOrderLinks.join('</li><li>')}</li></ul><br>Please log into the order system and move them to 'in progress' or 'completed' as appropriate.
                 `
             })
-            await pgClient.query(`update custorders set status='t_notified' where status='new'`);
+            await pgClient.query(`update custorders set status='t_notified' where status='new' OR status='PROPOSED'`);
         }
 
     } catch (error) {
