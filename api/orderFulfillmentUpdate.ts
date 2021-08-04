@@ -54,7 +54,7 @@ function isFromSquare(request: Request, sigKey: string, readFromHeaders=false) {
   if (!retval) {
     console.error(`authorization to webhook endpoint failed: site ${url}`)
     console.error(`request body: ${request.body}`);
-    console.error(`sig: ${process.env.ORDERUPDATE_WEBHOOK_SIG}`)
+    console.error(`sig: ${process.env.ORDERUPDATE_WEBHOOK_SIGKEY}`)
     console.error(`header digest: ${request.get('X-Square-Signature')}`)
     console.error(`computed hash: ${hash}`)
     console.error(`url: ${NOTIFICATION_URL}`)
@@ -75,9 +75,9 @@ export function handleOrderFulfillmentUpdate(req: Request, res: Response, next: 
     res.json({error: "unauthorized request source"})
     next()  
   }
-  req.read()
   let fulfillmentUpdateJson = req.body;
-
+  process.env.DEBUG==="true" && console.error("reading fulfillment notification from square endpoint")
+  process.env.DEBUG==="true" && console.error(`payload was: ${fulfillmentUpdateJson}`)
   let orderUpdateObj = JSONtoOrderUpdateObj.toOrderUpdateWebhookPayload(fulfillmentUpdateJson)
   if (orderUpdateObj?.type === "order") {
     let sqOrderId = orderUpdateObj.data.id
