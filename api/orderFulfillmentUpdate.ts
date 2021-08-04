@@ -53,7 +53,11 @@ function isFromSquare(request: Request, sigKey: string, readFromHeaders=false) {
   let retval = request.get('X-Square-Signature') === hash;
   if (!retval) {
     console.error(`authorization to webhook endpoint failed: site ${url}`)
-    console.error(`request body: ${JSON.stringify(request.body)}`);
+    console.error(`request body: ${request.body}`);
+    console.error(`sig: ${process.env.ORDERUPDATE_WEBHOOK_SIG}`)
+    console.error(`header digest: ${request.get('X-Square-Signature')}`)
+    console.error(`computed hash: ${hash}`)
+    console.error(`url: ${NOTIFICATION_URL}`)
   }
   return retval
 }
