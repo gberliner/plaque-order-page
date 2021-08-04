@@ -9,6 +9,7 @@ import { SearchOrdersFilter } from 'square/dist/models/searchOrdersFilter';
 import { SearchOrdersFulfillmentFilter } from 'square/dist/models/searchOrdersFulfillmentFilter';
 /// <reference path="./types/legit/legit.d.ts" />
 import legit from 'legit'
+import {jsonParseIfStringified} from './api/stringUtils'
 //import { SearchOrdersQuery, SearchOrdersRequest, SearchOrdersFulfillmentFilter, SearchOrdersFilter } from 'square-connect';
 //import { UpdateOrderRequest, Order } from 'square-connect';
 
@@ -41,8 +42,9 @@ const pgClient = new pg.Client({
 
 async function checkForAndCreateCustomerInSquare(row: any,client: Square.Client, pgclient: pg.Client,rowFromCustomer: boolean) {
     let email = row[rowFromCustomer?'email':'custemail'];
-    let note: string = ""
     let origEmail = email
+    email = jsonParseIfStringified(email)
+    let note: string = ""
     let legitRes = await legit(email);
     if (!legitRes.isValid) {
         console.warn(`User email address ${email}, no valid mx!`)
@@ -89,18 +91,18 @@ async function checkForAndCreateCustomerInSquare(row: any,client: Square.Client,
 
         }
         createCustomerRequest.address = {
-            addressLine1: row["address"],
-            firstName: firstname,
-            lastName: lastname,
+            addressLine1: jsonParseIfStringified(row["address"]),
+            firstName: jsonParseIfStringified(firstname),
+            lastName: jsonParseIfStringified(lastname),
             
         }
         if (note !== "") {
-            createCustomerRequest.note = note
+            createCustomerRequest.note = jsonParseIfStringified(note)
         }
         createCustomerRequest.emailAddress = email
         createCustomerRequest.phoneNumber = "1" + phone
-        createCustomerRequest.givenName = firstname
-        createCustomerRequest.familyName = lastname
+        createCustomerRequest.givenName = jsonParseIfStringified(firstname)
+        createCustomerRequest.familyName = jsonParseIfStringified(lastname)
         let sqCustRes = await client.customersApi.createCustomer(createCustomerRequest)
         let sqid = ""
         if (sqCustRes?.result !== undefined && sqCustRes?.result?.customer !== undefined && sqCustRes?.result?.customer.id !== undefined) {

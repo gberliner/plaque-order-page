@@ -212,6 +212,6 @@ const typeMap: any = {
     "FulfillmentUpdate": o([
         { json: "fulfillment_uid", js: "fulfillmentUid", typ: "" },
         { json: "new_state", js: "newState", typ: "" },
-        { json: "old_state", js: "oldState", typ: "" },
+        { json: "old_state", js: "oldState", typ: u(undefined, "") },
     ], false),
 };

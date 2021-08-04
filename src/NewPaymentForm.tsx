@@ -108,9 +108,9 @@ export class NewPaymentForm extends React.Component<NewPaymentFormProps,NewPayme
         let address = JSON.stringify((document.getElementById('addr-value') as HTMLInputElement)?.value);
         let email = JSON.stringify((document.getElementById('eml') as HTMLInputElement)?.value);
         let success = true;
-        let year = JSON.stringify((document.getElementById('plaque-year') as HTMLInputElement)?.value);
+        let year = (document.getElementById('plaque-year') as HTMLInputElement)?.value;
         let customwords = JSON.stringify((document.getElementById('plaque-optional-text') as HTMLInputElement)?.value);
-        let phone = JSON.stringify((document.getElementById('phone') as HTMLInputElement)?.value);
+        let phone = (document.getElementById('phone') as HTMLInputElement)?.value;
         let firstname = JSON.stringify((document.getElementById('buyerFirstName') as HTMLInputElement).value)
         let lastname = JSON.stringify((document.getElementById('buyerLastName') as HTMLInputElement).value)
 
