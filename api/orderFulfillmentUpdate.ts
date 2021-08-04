@@ -48,7 +48,7 @@ function isFromSquare(request: Request, sigKey: string, readFromHeaders=false) {
     url = "https://" + request.hostname + "/api/order-fulfillment-updated"
   }
   
-  hmac.update(url + JSON.stringify(request.body));
+  hmac.update(url + (request.body as string));
   const hash = hmac.digest('base64');
   let retval = request.get('X-Square-Signature') === hash;
   if (!retval) {
