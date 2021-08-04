@@ -56,6 +56,7 @@
     "start": "if [ ${NODE_ENV} = \"test\" ]; then concurrently \"npm run start-backend\" \"npm run start-frontend\"; else npm run start-frontend; fi",
     "start-frontend": "if [ ${NODE_ENV} = \"production\" ]; then node --es-module-specifier-resolution=node server.js;  else react-scripts start; fi",
     "start-backend": "npm run build && if [ ${NODE_ENV} = \"production\" ]; then npm run start-frontend; else node --es-module-specifier-resolution=node server.js; fi",
+    "start-backend-test": "npm run build-api && node --es-module-specifier-resolution=node server.js",
     "build": "react-scripts build && npm run build-api",
     "test": "react-scripts test",
     "eject": "react-scripts eject",

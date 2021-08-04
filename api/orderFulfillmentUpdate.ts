@@ -43,9 +43,13 @@ const pgClient = new pg.Client({
 
 function isFromSquare(request: Request, sigKey: string, readFromHeaders=false) {
   const hmac = createHmac('sha1', sigKey);
-  let url = NOTIFICATION_URL;
+  let url = NOTIFICATION_URL; 
+  let requestHostname = request.headers.host;
+  if (process.env.NODE_ENV === "test") {
+    requestHostname = request.get('X-Forwarded-For')??requestHostname;
+  }
   if (readFromHeaders) {
-    url = "https://" + request.hostname + "/api/order-fulfillment-updated"
+    url = request.protocol + "://" + requestHostname + "/api/order-fulfillment-updated"
   }
   
   hmac.update(url + (request.body as string));
@@ -65,7 +69,7 @@ function isFromSquare(request: Request, sigKey: string, readFromHeaders=false) {
 export function handleOrderFulfillmentUpdate(req: Request, res: Response, next: NextFunction) {
   // verify legit request
   //TODO: add this config var!:
-  let readHostFromHeaders = false;
+  let readHostFromHeaders = true;
   if (!!process.env.READ_HOST_FROM_HEADERS && process.env.READ_HOST_FROM_HEADERS === "true") {
     readHostFromHeaders = true;
   }
