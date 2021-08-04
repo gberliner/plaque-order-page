@@ -174,7 +174,7 @@ export async function worker(){
                 promiseRa.push((async ()=> {
                     let sqCustId: string;
                     try {
-                        let custIdRes = await pgClient.query(`select sqid from customer where id=(select custid from custorders where sqorderid='${order.id}'`);
+                        let custIdRes = await pgClient.query(`select sqid from customer where id=(select custid from custorders where sqorderid='${order.id}')`);
                         if (custIdRes.rowCount >= 1) {
                             sqCustId = custIdRes.rows[0]["custid"];
                             order.customerId = sqCustId
@@ -204,7 +204,8 @@ export async function worker(){
 
 
             newOrders.forEach((order,idx)=>{
-                newOrderLinks[idx] = `<a href="${squareOrderUrlTemplate + order}">order id: ${order}</a>`
+                let fullUrl = squareOrderUrlTemplate + order;
+                newOrderLinks[idx] = `<a href="${fullUrl}">order id: ${order}</a>`
             })
 
             await sendemail({
