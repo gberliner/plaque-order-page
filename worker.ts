@@ -32,7 +32,7 @@ if (process.env.NODE_ENV === "production" && process.env.STAGING !== 'true') {
 
 const sqClient = new Square.Client(configSquare)
 const connectionString = process.env.DATABASE_URL
-const pgClient = new pg.Client({
+const pgPool = new pg.Pool({
     connectionString,
     ssl: {
         rejectUnauthorized: false
@@ -40,7 +40,7 @@ const pgClient = new pg.Client({
 
 })
 
-async function checkForAndCreateCustomerInSquare(row: any,client: Square.Client, pgclient: pg.Client,rowFromCustomer: boolean) {
+async function checkForAndCreateCustomerInSquare(row: any,client: Square.Client, pgclient: pg.Pool,rowFromCustomer: boolean) {
     let email = row[rowFromCustomer?'email':'custemail'];
     let origEmail = email
     email = jsonParseIfStringified(email)
@@ -80,7 +80,7 @@ async function checkForAndCreateCustomerInSquare(row: any,client: Square.Client,
     }
 
     if (!rowFromCustomer) {
-        customerLocal = await pgclient.query(`select * from Customer where email='${origEmail}'`)
+        customerLocal = await pgPool.query(`select * from Customer where email='${origEmail}'`)
         if (customerLocal.rowCount >= 1) {
             phone = customerLocal.rows[0]['phone']
         }    
@@ -107,7 +107,7 @@ async function checkForAndCreateCustomerInSquare(row: any,client: Square.Client,
         let sqid = ""
         if (sqCustRes?.result !== undefined && sqCustRes?.result?.customer !== undefined && sqCustRes?.result?.customer.id !== undefined) {
             sqid = sqCustRes.result.customer.id;
-            await pgclient.query(`update customer set sqid='${sqid}' where email='${origEmail}'`)
+            await pgPool.query(`update customer set sqid='${sqid}' where email='${origEmail}'`)
         }
     }
 }
@@ -115,20 +115,19 @@ async function checkForAndCreateCustomerInSquare(row: any,client: Square.Client,
 export async function populateCustomersInSquare() {
     
     try{
-        await pgClient.connect()
 
-        let res = await pgClient.query("select * from customer where sqid is null")
+        let res = await pgPool.query("select * from customer where sqid is null")
         if (res.rowCount > 0) {
             await Promise.all(((ra: Array<unknown>): Array<Promise<unknown >> =>{
                 let promiseRa = new Array<Promise<unknown > >(ra.length);
                 ra.forEach(async (row)=>{
-                    promiseRa.push(checkForAndCreateCustomerInSquare(row, sqClient, pgClient, true))
+                    promiseRa.push(checkForAndCreateCustomerInSquare(row, sqClient, pgPool, true))
                 })
                 return promiseRa;
             })(res.rows))    
         }
-    } finally {
-        await pgClient.end()
+    } catch(error) {
+        console.error(error)
     }
 }
 
@@ -139,21 +138,20 @@ export async function worker(){
  
 
     try {
-        await pgClient.connect();
 
-        let results = await pgClient.query(`select * from custorders join customer on custorders.custid=customer.id where status='new' OR status='PROPOSED';`)
+        let results = await pgPool.query(`select * from custorders join customer on custorders.custid=customer.id where status='new';`)
         if (results.rowCount >= 3) {
             await Promise.all(((ra: Array<unknown>): Array<Promise<unknown >> =>{
                 let promiseRa = new Array<Promise<unknown > >(ra.length);
                 ra.forEach(async (row)=>{
-                    promiseRa.push(checkForAndCreateCustomerInSquare(row, sqClient, pgClient, false))
+                    promiseRa.push(checkForAndCreateCustomerInSquare(row, sqClient, pgPool, false))
                 })
                 return promiseRa;
             })(results.rows))
         } else {
             throw(new Error('too few orders to act on'))            
         }
-        let resultsFromDb = await pgClient.query("select sqorderid from custorders where status='new' OR status='PROPOSED'");
+        let resultsFromDb = await pgPool.query("select sqorderid from custorders where status='new'");
         newOrders = new Array<string>(resultsFromDb.rowCount)
         resultsFromDb.rows.forEach((row,idx)=>{
             newOrders[idx] = row['sqorderid']
@@ -174,7 +172,7 @@ export async function worker(){
                 promiseRa.push((async ()=> {
                     let sqCustId: string;
                     try {
-                        let custIdRes = await pgClient.query(`select sqid from customer where id=(select custid from custorders where sqorderid='${order.id}')`);
+                        let custIdRes = await pgPool.query(`select sqid from customer where id=(select custid from custorders where sqorderid='${order.id}'`);
                         if (custIdRes.rowCount >= 1) {
                             sqCustId = custIdRes.rows[0]["custid"];
                             order.customerId = sqCustId
@@ -185,7 +183,7 @@ export async function worker(){
                         }
                         await sqClient.ordersApi.updateOrder(order.id as string, updateOrderRequest)
                     } catch (error) {
-                        console.error("error updating order for sqorderid = ${order.id}: ")
+                        console.error(`error updating order for sqorderid = ${order.id}: `)
                         console.error(error)
                     }
                     return;
@@ -204,8 +202,7 @@ export async function worker(){
 
 
             newOrders.forEach((order,idx)=>{
-                let fullUrl = squareOrderUrlTemplate + order;
-                newOrderLinks[idx] = `<a href="${fullUrl}">order id: ${order}</a>`
+                newOrderLinks[idx] = `<a href="${squareOrderUrlTemplate + order}">order id: ${order}</a>`
             })
 
             await sendemail({
@@ -218,7 +215,7 @@ export async function worker(){
                     <ul><li>${newOrderLinks.join('</li><li>')}</li></ul><br>Please log into the order system and move them to 'in progress' or 'completed' as appropriate.
                 `
             })
-            await pgClient.query(`update custorders set status='t_notified' where status='new' OR status='PROPOSED'`);
+            await pgPool.query(`update custorders set status='t_notified' where status='new'`);
         }
 
     } catch (error) {
@@ -226,10 +223,7 @@ export async function worker(){
         if (undefined !== error.body) {
             console.error(error.body)
         }
-    } finally {
-        pgClient.end()
-    }
-
+    } 
 }
 
 export async function linkSquareOrdersToCustomers() {
@@ -249,7 +243,6 @@ export async function linkSquareOrdersToCustomers() {
     }
     orderSearchRequest.locationIds = [process.env.REACT_APP_LOCATION_ID as string]
     try {
-        await pgClient.connect()
         let res = await sqClient.ordersApi.searchOrders(orderSearchRequest)
         res.result.orders
         if (res?.result?.orders?.length !== undefined && res?.result?.orders?.length > 0) {
@@ -261,7 +254,7 @@ export async function linkSquareOrdersToCustomers() {
                             try {
                                 if (!order.customerId) {
                                     let custid: string;
-                                    let custidres = await pgClient.query(`select sqid,sqorderid from customer join custorders on customer.id=custorders.custid where sqorderid='${order.id}'`)
+                                    let custidres = await pgPool.query(`select sqid,sqorderid from customer join custorders on customer.id=custorders.custid where sqorderid='${order.id}'`)
                                     if (custidres.rowCount > 0) {
                                         custid = custidres.rows[0]['sqid'];
                                         let updatedOrder = order;
@@ -285,7 +278,5 @@ export async function linkSquareOrdersToCustomers() {
         
     } catch(error) {
         console.error(error)
-    } finally {
-        pgClient.end()
-    }
+    } 
 }
