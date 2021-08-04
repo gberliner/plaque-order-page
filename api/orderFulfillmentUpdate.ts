@@ -43,9 +43,13 @@ const pgClient = new pg.Client({
 
 function isFromSquare(request: Request, sigKey: string, readFromHeaders=false) {
   const hmac = createHmac('sha1', sigKey);
-  let url = NOTIFICATION_URL;
+  let url = NOTIFICATION_URL; 
+  let requestHostname = request.headers.host;
+  if (process.env.NODE_ENV === "test") {
+    requestHostname = request.get('X-Forwarded-For')??requestHostname;
+  }
   if (readFromHeaders) {
-    url = "https://" + request.hostname + "/api/order-fulfillment-updated"
+    url = request.protocol + "://" + requestHostname + "/api/order-fulfillment-updated"
   }
   
   hmac.update(url + (request.body as string));
@@ -54,7 +58,7 @@ function isFromSquare(request: Request, sigKey: string, readFromHeaders=false) {
   if (!retval) {
     console.error(`authorization to webhook endpoint failed: site ${url}`)
     console.error(`request body: ${request.body}`);
-    console.error(`sig: ${process.env.ORDERUPDATE_WEBHOOK_SIG}`)
+    console.error(`sig: ${process.env.ORDERUPDATE_WEBHOOK_SIGKEY}`)
     console.error(`header digest: ${request.get('X-Square-Signature')}`)
     console.error(`computed hash: ${hash}`)
     console.error(`url: ${NOTIFICATION_URL}`)
@@ -65,7 +69,7 @@ function isFromSquare(request: Request, sigKey: string, readFromHeaders=false) {
 export function handleOrderFulfillmentUpdate(req: Request, res: Response, next: NextFunction) {
   // verify legit request
   //TODO: add this config var!:
-  let readHostFromHeaders = false;
+  let readHostFromHeaders = true;
   if (!!process.env.READ_HOST_FROM_HEADERS && process.env.READ_HOST_FROM_HEADERS === "true") {
     readHostFromHeaders = true;
   }
@@ -75,10 +79,14 @@ export function handleOrderFulfillmentUpdate(req: Request, res: Response, next: 
     res.json({error: "unauthorized request source"})
     next()  
   }
-  req.read()
   let fulfillmentUpdateJson = req.body;
 
   let orderUpdateObj = JSONtoOrderUpdateObj.toOrderUpdateWebhookPayload(fulfillmentUpdateJson)
+//TODO: the type here is order.fulfillment.update
+//it is "order" only on the fulfillmentUpdateObj
+//in any case, there should be a 'next()' either in 
+//an else clause or immediately before falling through
+//the end
   if (orderUpdateObj?.type === "order") {
     let sqOrderId = orderUpdateObj.data.id
     let fulfillmentUpdateObj = orderUpdateObj.data.object.orderFulfillmentUpdated.fulfillmentUpdate[0]
