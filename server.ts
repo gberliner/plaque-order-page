@@ -18,6 +18,7 @@ app.use(express.static(path.join(__dirname, 'build')));
 //(we will use a custom parser tailored for these messages instead): 
 app.use(function(req,res,next) {
 	if (!!req.get('X-Square-Signature')) {
+		req.headers['content-type'] = 'text/plain';
 		(express.text())(req,res,next)
 	}else {
 		(express.json()(req,res,next))
