@@ -1,8 +1,9 @@
-import Square, {CatalogApi,OrdersApi} from 'square';
+import Square, {OrdersApi} from 'square';
 import {Request, Response, NextFunction, RequestHandler} from 'express';
 import pg from 'pg';
 import {ExpressHandler} from '../interfaces/handlers'
 import {nanoid} from 'nanoid';
+import {jsonParseIfStringified} from '../api/stringUtils'
 //at present, there is only one catalog item:
 //{"objects":[{"type":"ITEM","id":"TVDFRE4NN4LQEYVIUFAZ3L4Y","updated_at":"2021-07-14T22:33:28.797Z","version":1626302008797,"is_deleted":false,"present_at_all_locations":true,"image_id":"NIUGWP325MGF25ADAKBKO7Y7","item_data":{"name":"standard plaque","description":"Brooklyn neighborhood historic plaque, standard size and design ","visibility":"PRIVATE","variations":[{"type":"ITEM_VARIATION","id":"Y3IROCVXXXKS4G6RNFKKFKZV","updated_at":"2021-07-14T22:33:28.797Z","version":1626302008797,"is_deleted":false,"present_at_all_locations":true,"item_variation_data":{"item_id":"TVDFRE4NN4LQEYVIUFAZ3L4Y","name":"Regular","sku":"0000100","ordinal":1,"pricing_type":"FIXED_PRICING","price_money":{"amount":3000,"currency":"USD"},"stockable":true}}],"product_type":"REGULAR","skip_modifier_screen":true,"ecom_visibility":"UNINDEXED"}}]}
 type Req = {
@@ -92,11 +93,11 @@ export default function createPlaqueOrder(req:Request, res:Response, next:NextFu
                 let pickupDetails: Square.OrderFulfillmentPickupDetails;
                 pickupDetails = {
                     recipient: {
-                        displayName: email
+                        displayName: jsonParseIfStringified(email)
                     },
                     autoCompleteDuration: "P4W",
                     scheduleType: "ASAP",
-                    note: "any time now",
+                    note: "optional text: " + customwords,
                     prepTimeDuration: "P4W"
                 }
                 fulfillment = {
@@ -131,15 +132,15 @@ export default function createPlaqueOrder(req:Request, res:Response, next:NextFu
                             next("apparent glitch in square orderapi: no new orderid returned")
                         }
                         try {
-                            await pgClient.query(`insert into CustOrders(SqOrderId,CustEmail,Phone,CustAddr,Year,CustomWords,Status) values ('${sqNewOrderId}','${email}','${phone}','${address}','${year}','${customwords}','new')`);
+                            await pgClient.query(`insert into CustOrders(SqOrderId,CustEmail,Phone,CustAddr,Year,CustomWords,Status) values (${dollarQuote(sqNewOrderId)},${dollarQuote(email)},${dollarQuote(phone)},${dollarQuote(address)},'${year}',${dollarQuote(customwords)},'new')`);
                             req.body["orderid"] = sqNewOrderId;
                             req.body["price"] = base_price_money.amount.toString();
                             let custqueryres = await pgClient.query(`select * from customer where email='${email}'`)
                             if (1 > custqueryres.rowCount) {
-                                await pgClient.query(`insert into customer (firstname,lastname,email,address,phone) values('${firstname}', '${lastname}', '${email}','${address}','${phone}')`) 
+                                await pgClient.query(`insert into customer (firstname,lastname,email,address,phone) values(${dollarQuote(firstname)}, ${dollarQuote(lastname)}, ${dollarQuote(email)},${dollarQuote(address)},${dollarQuote(phone)})`) 
                             }
                             // join custorders and customer on custorders.custid=customer.id
-                            let newCustRes = await pgClient.query(`update custorders set custid=(select id from customer where customer.email='${email}') where custorders.custemail='${email}'`)
+                            let newCustRes = await pgClient.query(`update custorders set custid=(select id from customer where customer.email=${dollarQuote(email)}) where custorders.custemail=${dollarQuote(email)}`)
                             if (newCustRes.rowCount < 1) {
                                 console.error(`failed adding foreign custid key to custorders for email address ${email}`)
                             } 
@@ -173,5 +174,8 @@ export default function createPlaqueOrder(req:Request, res:Response, next:NextFu
     return((void(null) as unknown) as RequestHandler<Request,Response,NextFunction>);
 }
 
-
+function dollarQuote(arg:string|undefined){
+    let dquote = '$quote$'
+    return dquote + arg + dquote
+}
 export {createPlaqueOrder}

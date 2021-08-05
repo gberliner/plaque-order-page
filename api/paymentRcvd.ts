@@ -1,5 +1,4 @@
 import { Request,Response, RequestHandler, NextFunction }  from 'express'
-import { Payment,CreatePaymentRequest, PaymentsApi,ApiClient } from 'square-connect';
 import {nanoid} from 'nanoid';
 import Square from 'square';
 type OrderReceipt = {
@@ -18,7 +17,6 @@ export default function processPayment(req: Request,res: Response, next: NextFun
         if (process.env?.STAGING === "true") {
             url = 'https://connect.squareupsandbox.com/v2/payments'
         }    
-        let pymt = new Payment();
         //let pymtreq = new CreatePaymentRequest();
         let pymtreq: Square.CreatePaymentRequest = {
             sourceId: req.body.nonce,
@@ -30,7 +28,6 @@ export default function processPayment(req: Request,res: Response, next: NextFun
             locationId: process.env.REACT_APP_LOCATION_ID,
             orderId: req.body.orderid
         }
-        let apiClient = new ApiClient();
         
         let clientEnvironmentSandbox = {
             accessToken: process.env.SQUARE_ACCESS_TOKEN,

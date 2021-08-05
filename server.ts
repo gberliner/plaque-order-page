@@ -1,18 +1,34 @@
 import express from 'express';
+import bodyParser from 'body-parser';
 import path from 'path';
+import parser, {OptionsText} from 'body-parser'
 import processPayment from './api/paymentRcvd';
 import {handlePaymentErrors} from './api/handlePaymentErrors';
 import {createPlaqueOrder} from './api/createOrder';
 import {checkPrice} from './api/checkPrice';
 import { fileURLToPath } from 'url';
+import { handleOrderFulfillmentUpdate } from './api/orderFulfillmentUpdate';
 //@ts-ignore
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express();
+app.enable('trust proxy');
 app.use(express.static(path.join(__dirname, 'build')));
 
+//Note: bypass auto-parsing json for handling the Square webhook "order.fulfillment.update"
+//(we will use a custom parser tailored for these messages instead): 
+app.use(function(req,res,next) {
+	if (!!req.get('X-Square-Signature')) {
+		req.headers['content-type'] = 'text/plain';
+		(express.text({
+			type: '*/*'
+		}))(req,res,next)
+	}else {
+		(express.json()(req,res,next))
+	}
+})
 
-app.use(express.json());
+app.post('/api/order-fulfillment-updated', handleOrderFulfillmentUpdate);
 app.get('/ping', function (req, res) {
  return res.send('pong');
 });

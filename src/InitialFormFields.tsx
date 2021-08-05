@@ -143,13 +143,24 @@ export function InitialFormFields(props: {
                     </div>
 
                     <div className="float-child-right">
-                        <TextField id="plaque-year" label="Year built" variant="filled" inputProps={{ maxLength: 4 }} style={{ width: 100 }}></TextField>
-                        <TextField id="plaque-optional-text"
+                        <TextField 
+                        id="plaque-year" 
+                        label="Year built" 
+                        variant="filled" 
+                        inputProps={{ 
+                            maxLength: 4 
+                        }} 
+                        style={{ width: 100 }}>
+                        </TextField>
+                        <TextField 
+                        id="plaque-optional-text"
+                        label="Brief optional text" 
+                        variant="filled"
                         inputProps={{
                             maxLength: 30
                         }}
-                         label="Brief optional text" 
-                         variant="filled"></TextField>
+                         >
+                         </TextField>
 
                     </div>
 
