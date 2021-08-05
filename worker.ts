@@ -15,7 +15,7 @@ import {jsonParseIfStringified} from './api/stringUtils'
 
 const notificationEmail = process.env.NOTIFICATION_RECIPIENT || 'guy.berliner@gmail.com'
 const squareUrlPrefix = 'https://squareup'
-const squareUrlDashboardPrefix = '.com/dashboard/orders/overview/ '
+const squareUrlDashboardPrefix = '.com/dashboard/orders/overview/'
 const configSandbox: Partial<Square.Configuration> = {
     accessToken: process.env.SQUARE_ACCESS_TOKEN,
     environment: Square.Environment.Sandbox,
