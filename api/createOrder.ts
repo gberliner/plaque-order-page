@@ -132,15 +132,15 @@ export default function createPlaqueOrder(req:Request, res:Response, next:NextFu
                             next("apparent glitch in square orderapi: no new orderid returned")
                         }
                         try {
-                            await pgClient.query(`insert into CustOrders(SqOrderId,CustEmail,Phone,CustAddr,Year,CustomWords,Status) values ('${sqNewOrderId}','${email}','${phone}','${address}','${year}','${customwords}','new')`);
+                            await pgClient.query(`insert into CustOrders(SqOrderId,CustEmail,Phone,CustAddr,Year,CustomWords,Status) values (${dollarQuote(sqNewOrderId)},${dollarQuote(email)},${dollarQuote(phone)},${dollarQuote(address)},'${year}',${dollarQuote(customwords)},'new')`);
                             req.body["orderid"] = sqNewOrderId;
                             req.body["price"] = base_price_money.amount.toString();
                             let custqueryres = await pgClient.query(`select * from customer where email='${email}'`)
                             if (1 > custqueryres.rowCount) {
-                                await pgClient.query(`insert into customer (firstname,lastname,email,address,phone) values('${firstname}', '${lastname}', '${email}','${address}','${phone}')`) 
+                                await pgClient.query(`insert into customer (firstname,lastname,email,address,phone) values(${dollarQuote(firstname)}, ${dollarQuote(lastname)}, ${dollarQuote(email)},${dollarQuote(address)},${dollarQuote(phone)})`) 
                             }
                             // join custorders and customer on custorders.custid=customer.id
-                            let newCustRes = await pgClient.query(`update custorders set custid=(select id from customer where customer.email='${email}') where custorders.custemail='${email}'`)
+                            let newCustRes = await pgClient.query(`update custorders set custid=(select id from customer where customer.email=${dollarQuote(email)}) where custorders.custemail=${dollarQuote(email)}`)
                             if (newCustRes.rowCount < 1) {
                                 console.error(`failed adding foreign custid key to custorders for email address ${email}`)
                             } 
@@ -174,5 +174,8 @@ export default function createPlaqueOrder(req:Request, res:Response, next:NextFu
     return((void(null) as unknown) as RequestHandler<Request,Response,NextFunction>);
 }
 
-
+function dollarQuote(arg:string|undefined){
+    let dquote = '$quote$'
+    return dquote + arg + dquote
+}
 export {createPlaqueOrder}
