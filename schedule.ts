@@ -1,5 +1,5 @@
 import schedule from 'node-schedule'
-import {worker, populateCustomersInSquare} from './worker';
+import {worker, populateCustomersInSquare, generateVendorOrder} from './worker';
 const workerSchedule = process.env.WORKER_SCHEDULE || 5;
 const uploadSchedule = process.env.UPLOAD_SCHEDULE || 22;
 const workerCronSchedule = `*/${workerSchedule} * * * *`
@@ -19,3 +19,6 @@ if (uploadSchedule !== "0") {
         await populateCustomersInSquare();
     });
 }
+schedule.scheduleJob('*/6 * * * *', async()=>{
+    await generateVendorOrder();
+})
