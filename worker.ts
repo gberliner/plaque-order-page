@@ -141,7 +141,7 @@ export async function populateCustomersInSquare() {
 }
 
 // to be run as scheduled job
-export async function worker(){
+export async function reportNewOrders(){
 
     let newOrders:  Array<string>
  

@@ -1,5 +1,5 @@
 import schedule from 'node-schedule'
-import {worker, populateCustomersInSquare, generateVendorOrder} from './worker';
+import {populateCustomersInSquare, generateVendorOrder, reportNewOrders} from './worker';
 const workerSchedule = process.env.WORKER_SCHEDULE || 5;
 const uploadSchedule = process.env.UPLOAD_SCHEDULE || 22;
 const workerCronSchedule = `*/${workerSchedule} * * * *`
@@ -9,7 +9,7 @@ const uploadCronSchedule = `*/${uploadSchedule} * * * *`
 if (workerSchedule !== "0") {
     schedule.scheduleJob(workerCronSchedule, async ()=>{
         //run every 5 minutes by default
-        await worker();
+        await reportNewOrders();
     });
 }
 
