@@ -308,7 +308,7 @@ export async function generateVendorOrder() {
         if (res.rowCount < 3) {
             throw('Not enough orders for vendor order yet')
         } else {
-            await pgPool.query(`update custorders set oldstate='COMPLETED',vendororder=${groupOrderCode} where oldstate!='COMPLETED' AND status='COMPLEED'`)
+            await pgPool.query(`update custorders set oldstate='COMPLETED',vendororder='${groupOrderCode}' where oldstate!='COMPLETED' AND status='COMPLETED'`)
         }
         res.rows.forEach((row,idx)=>{
             htmlAsString += formatHtmlVendorOrder(row);
