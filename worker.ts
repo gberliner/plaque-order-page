@@ -304,7 +304,7 @@ export async function generateVendorOrder() {
         html: ""
     }
     let groupOrderCode = nanoid()
-    let htmlAsString: string = `<P>The following orders have been paid for by customers and are ready for vendor processing. Please reference group order number ${groupOrderCode}. <table><caption>Orders ready for vendor processing</caption><th>Order Id (BAC)</th><th>Cust Id (BAC)</th><th>Year</th><th>Custom text</th>`
+    let htmlAsString: string = `<P>The following orders have been paid for by customers and are ready for vendor processing. Please reference group order code ${groupOrderCode} (in check memo lines, etc). <table><caption>Orders ready for vendor processing</caption><th>Order Id (BAC)</th><th>Cust Id (BAC)</th><th>Year</th><th>Custom text</th>`
     try {
         let res = await pgPool.query(`select * from custorders join customer on custorders.custid=customer.id where status='COMPLETED' AND oldstate!='COMPLETED'`)
         if (res.rowCount < 3) {
