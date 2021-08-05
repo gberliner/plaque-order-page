@@ -334,7 +334,7 @@ function formatHtmlVendorOrder(orderInfo: VendorOrderInfo) {
     let sqCustLink = squareCustUrlTemplate + orderInfo.sqid
     let sqidLink = `<a href="${sqCustLink}">${orderInfo.sqid}</a>`
     let sqorderidUrlTemplate =  squareUrlPrefix + (process.env.NODE_ENV === "test" || process.env.STAGING === "true"?"sandbox":"") + squareUrlDashboardPrefix
-    let sqorderidLink = `<a href="${sqorderidUrlTemplate}">${orderInfo.sqorderid}</a>`
+    let sqorderidLink = `<a href="${sqorderidUrlTemplate+orderInfo.sqorderid}">${orderInfo.sqorderid}</a>`
     return `<tr>${sqorderidLink}<td>${sqidLink}</td><td>${orderInfo.year}</td><td>${orderInfo.customwords}</td></tr>`
 }
 
