@@ -16,6 +16,7 @@ import {jsonParseIfStringified} from './api/stringUtils'
 const notificationEmail = process.env.NOTIFICATION_RECIPIENT || 'guy.berliner@gmail.com'
 const squareUrlPrefix = 'https://squareup'
 const squareUrlDashboardPrefix = '.com/dashboard/orders/overview/'
+const squareUrlDashboardCustPrefix = '.com/dashboard/customers/overview/'
 const configSandbox: Partial<Square.Configuration> = {
     accessToken: process.env.SQUARE_ACCESS_TOKEN,
     environment: Square.Environment.Sandbox,
@@ -43,6 +44,7 @@ const pgPool = new pg.Pool({
 type VendorOrderInfo = {
     sqorderid: string;
     custid: string;
+    sqid: string;
     customwords: string;
     year: string;
 }
@@ -302,9 +304,9 @@ export async function generateVendorOrder() {
         html: ""
     }
     let groupOrderCode = nanoid()
-    let htmlAsString: string = '<P>The following orders have been paid for by customers and are ready for vendor processing. Please reference group order number ${groupOrderCode}. <table><caption>Orders ready for vendor processing</caption><th>Order Id</th><th>Cust Id</th><th>Year</th><th>Custom text</th>'
+    let htmlAsString: string = `<P>The following orders have been paid for by customers and are ready for vendor processing. Please reference group order number ${groupOrderCode}. <table><caption>Orders ready for vendor processing</caption><th>Order Id</th><th>Cust Id</th><th>Year</th><th>Custom text</th>`
     try {
-        let res = await pgPool.query(`select * from custorders where status='COMPLETED' AND oldstate!='COMPLETED'`)
+        let res = await pgPool.query(`select * from custorders join customer on custorders.custid=customer.id where status='COMPLETED' AND oldstate!='COMPLETED'`)
         if (res.rowCount < 3) {
             throw('Not enough orders for vendor order yet')
         } else {
@@ -328,7 +330,12 @@ export async function generateVendorOrder() {
 } 
 
 function formatHtmlVendorOrder(orderInfo: VendorOrderInfo) {
-    return `<tr>${orderInfo.sqorderid}<td>${orderInfo.custid}</td><td>${orderInfo.year}</td><td>${orderInfo.customwords}</td></tr>`
+    let squareCustUrlTemplate = squareUrlPrefix + (process.env.NODE_ENV === "test" || process.env.STAGING === "true"?"sandbox":"") + squareUrlDashboardCustPrefix
+    let sqCustLink = squareCustUrlTemplate + orderInfo.sqid
+    let sqidLink = `<a href="${sqCustLink}">${orderInfo.sqid}</a>`
+    let sqorderidUrlTemplate =  squareUrlPrefix + (process.env.NODE_ENV === "test" || process.env.STAGING === "true"?"sandbox":"") + squareUrlDashboardPrefix
+    let sqorderidLink = `<a href="${sqorderidUrlTemplate}">${orderInfo.sqorderid}</a>`
+    return `<tr>${sqorderidLink}<td>${sqidLink}</td><td>${orderInfo.year}</td><td>${orderInfo.customwords}</td></tr>`
 }
 
 // create promise dot all out of an ra foreach loop
