@@ -98,7 +98,7 @@ export function handleOrderFulfillmentUpdate(req: Request, res: Response, next: 
       let arrowFunc = async () => {
         try {
           console.warn(`Updating order status for order ${sqOrderId} from ${oldState} to ${newState}`)
-          await pool.query(`update custorders set status='${newState}' where sqorderid='${sqOrderId}'`)
+          await pool.query(`update custorders set status='${newState}',oldstate='${oldState}' where sqorderid='${sqOrderId}'`)
           res.json({"result":"success"})
         } catch (error) {
           console.error(`Error updating local db with order fulfillment change on order ${sqOrderId}: `)
