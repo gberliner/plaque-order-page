@@ -210,7 +210,8 @@ export async function worker(){
 
 
             newOrders.forEach((order,idx)=>{
-                let fullOrderURL = squareOrderUrlTemplate + order
+                let fullOrderURL = `${squareOrderUrlTemplate}${order}`
+                console.error('notifying admin about order: ' + fullOrderURL)
                 newOrderLinks[idx] = `<a href="${fullOrderURL}">order id: ${order}</a>`
             })
 
