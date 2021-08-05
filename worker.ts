@@ -40,6 +40,13 @@ const pgPool = new pg.Pool({
 
 })
 
+type VendorOrderInfo = {
+    sqorderid: string;
+    custid: string;
+    customwords: string;
+    year: string;
+}
+
 async function checkForAndCreateCustomerInSquare(row: any,client: Square.Client, pgclient: pg.Pool,rowFromCustomer: boolean) {
     let email = row[rowFromCustomer?'email':'custemail'];
     let origEmail = email
@@ -279,4 +286,55 @@ export async function linkSquareOrdersToCustomers() {
     } catch(error) {
         console.error(error)
     } 
+}
+
+export async function generateVendorOrder() {
+    let emailHdr = {
+        recipient: process.env.NOTIFICATION_RECIPIENT || "treasurer@brooklyn-neighborhood.org",
+        sender: "chair@brooklyn-neighborhood.org",
+        subject: 'New plaque vendor group order',
+    };
+    let emailBody = {
+        text: "",
+        html: ""
+    }
+    let groupOrderCode = nanoid()
+    let htmlAsString: string = '<P>The following orders have been paid for by customers and are ready for vendor processing. Please reference group order number ${groupOrderCode}. <table><caption>Orders ready for vendor processing</caption><th>Order Id</th><th>Cust Id</th><th>Year</th><th>Custom text</th>'
+    try {
+        let res = await pgPool.query(`select * from custorders where status='COMPLETED' AND oldstate!='COMPLETED'`)
+        if (res.rowCount < 3) {
+            throw('Not enough orders for vendor order yet')
+        } else {
+            await pgPool.query(`update custorders set oldstate='COMPLETED',vendororder=${groupOrderCode} where oldstate!='COMPLETED' AND status='COMPLEED'`)
+        }
+        res.rows.forEach((row,idx)=>{
+            htmlAsString += formatHtmlVendorOrder(row);
+        })
+        // await promiseForAll(res.rows,async (row:any,idx:number)=>{
+        //     htmlAsString += formatHtmlVendorOrder(row);
+        //     let sqorderid=row['sqorderid']
+        //     await pgPool.query(`update custorders set vendorder='${groupOrderCode}' where sqorderid='${sqorderid}'`)
+        // })
+        htmlAsString += '</table>'
+        emailBody.html = htmlAsString
+        emailBody.text = 'Please see attachments'
+        await sendemail(emailHdr,emailBody)
+    } catch (error) {
+        console.error(error)
+    }
+} 
+
+function formatHtmlVendorOrder(orderInfo: VendorOrderInfo) {
+    return `<tr>${orderInfo.sqorderid}<td>${orderInfo.custid}</td><td>${orderInfo.year}</td><td>${orderInfo.customwords}</td></tr>`
+}
+
+// create promise dot all out of an ra foreach loop
+function promiseForAll<T>(ra: Array<T>, cb: (t:T,idx:number)=>Promise<unknown>) {
+    return Promise.all(((cbarg:(t:T,idx:number)=>Promise<unknown>)=>{
+        let promiseRa = new Array<Promise<unknown > >(ra.length);
+        ra.forEach((row,idx)=>{
+            promiseRa.push(cbarg(row,idx))
+        })
+        return promiseRa;
+    })(cb));
 }
