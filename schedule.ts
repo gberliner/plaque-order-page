@@ -1,9 +1,11 @@
 import schedule from 'node-schedule'
 import {populateCustomersInSquare, generateVendorOrder, reportNewOrders} from './worker';
-const workerSchedule = process.env.WORKER_SCHEDULE || 5;
+const workerSchedule = process.env.REPORT_SCHEDULE || 5;
 const uploadSchedule = process.env.UPLOAD_SCHEDULE || 22;
+const vendorSchedule = process.env.VENDOR_SCHEDULE || 6;
 const workerCronSchedule = `*/${workerSchedule} * * * *`
 const uploadCronSchedule = `*/${uploadSchedule} * * * *`
+const vendorCronSchedule = `*/${vendorSchedule} * * * *`
 // setting these environment variables to zero turns off 
 // the job in question
 if (workerSchedule !== "0") {
@@ -19,6 +21,7 @@ if (uploadSchedule !== "0") {
         await populateCustomersInSquare();
     });
 }
-schedule.scheduleJob('*/6 * * * *', async()=>{
+if (vendorSchedule !== "0") {
+    schedule.scheduleJob(vendorCronSchedule, async()=>{
     await generateVendorOrder();
-})
+})}
