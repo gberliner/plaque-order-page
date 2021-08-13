@@ -41,6 +41,8 @@
     "pg": "^8.6.0",
     "react": "^17.0.1",
     "react-dom": "^17.0.2",
+    "react-ladda": "^6.0.0",
+    "react-ladda-button": "^1.0.3",
     "react-leaflet": "3.1.0",
     "react-scripts": "4.0.3",
     "react-square-payment-form": "^0.7.2",
@@ -62,7 +64,7 @@
     "eject": "react-scripts eject",
     "runworkeronce": "node --es-module-specifier-resolution=node runWorkerOnce.js",
     "custupdate": "node --es-module-specifier-resolution=node runCustUpdate.js",
-    "linkOrdersToCustomers":"node --es-module-specifier-resolution=node runLinkSquareOrdersToCustomers.js",
+    "linkOrdersToCustomers": "node --es-module-specifier-resolution=node runLinkSquareOrdersToCustomers.js",
     "build-api": "tsc -p tsconfig-api.json",
     "scheduler": "node --es-module-specifier-resolution=node schedule.js"
   },

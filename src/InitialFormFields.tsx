@@ -3,6 +3,9 @@ import {OverpassResponse,OverpassJson,overpass,} from 'overpass-ts'
 import { useState, useEffect, MouseEvent,CSSProperties } from 'react';
 import { NewPaymentForm } from './NewPaymentForm';
 import {fmtAddressQueryResults} from './overpass-utils'
+import {LaddaButton,ZOOM_OUT,} from 'react-ladda-button'
+import 'react-ladda-button/dist/ladda-themeless.min.css'
+import 'bootstrap/dist/css/bootstrap.min.css'
 export function InitialFormFields(props: {
 }) {
     const [address, setAddress] = useState('')
@@ -12,6 +15,7 @@ export function InitialFormFields(props: {
     const [validationError,setValidationError] = useState(false)
     const [paymentSucceeded,setPaymentSucceeded] = useState(false)
     const [validationErrorMsg,setValidationErrorMsg] = useState("")
+    const [loading,setLoading] = useState(false);
     function openPaymentDialog() {
         return paymentSucceeded || validationError || addressValidated;
     }
@@ -93,7 +97,7 @@ export function InitialFormFields(props: {
         return !validCustomWords
     }
 
-    async function validateFields(event: MouseEvent) {
+    async function validateFields(event: React.MouseEvent) {
         event.preventDefault()
         let res: boolean|Promise<boolean> = false;
         res = validateYear() || validateCustomWords() || verifyAddress()
@@ -105,9 +109,17 @@ export function InitialFormFields(props: {
             console.error("Validation failed")
             setValidationErrorMsg("Validation failed due to possible system or network error")
             setValidationError(true);
-        }        
+        } finally {
+            setLoading(false);
+        }   
     }
-  
+
+    function toggleLoading(event: React.MouseEvent) {
+        event.preventDefault();
+        setLoading(true);
+        setTimeout(()=>{validateFields(event)},1);
+    }
+    
     return (
         <div id='initial-form-fields'>
             <Dialog open={openPaymentDialog()}>
@@ -165,7 +177,14 @@ export function InitialFormFields(props: {
                     </div>
 
                 </div>
-                <button id="verify-address" type="button" onClick={validateFields}>Verify</button>
+
+                <LaddaButton
+                    id="verify-address"
+                    data-style={ZOOM_OUT}
+                    data-color="green"
+                    loading={loading}
+                    className="ladda-button btn btn-primary btn-large "                    onClick={toggleLoading}
+                >Verify</LaddaButton>
                 <br></br>
             </form>
         </div>
