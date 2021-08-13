@@ -55,6 +55,7 @@ export function InitialFormFields(props: {
                 } else {
                     setAddressValidated(false);
                     setValidationErrorMsg("Address not found in Brooklyn")
+                    setValidationError(true)
                     return true
                 }
             } catch (error) {
@@ -64,9 +65,13 @@ export function InitialFormFields(props: {
                     pymtForm.style.visibility = "hidden";
                 }
                 setValidationErrorMsg("Error from overpass server: " + error?.message)
+                setValidationError(true)
                 setOverpassErrorMsg(error?.message);
                 return true
             }
+        } else {
+            setValidationErrorMsg("Address not found in Brooklyn")
+            setValidationError(true)
         }
         return true
     }
@@ -78,11 +83,13 @@ export function InitialFormFields(props: {
         if (null === yearValue.match(/^\d{4}$/)) {
             validYear = false;
             setValidationErrorMsg("Invalid year specified")
+            setValidationError(true)
             return !validYear;
         }
         if (!(yearValue.startsWith("18") || yearValue.startsWith("19"))) {
             validYear = false;
             setValidationErrorMsg("Invalid year specified")
+            setValidationError(true)
             return !validYear;
         }
         return !validYear;
@@ -93,6 +100,7 @@ export function InitialFormFields(props: {
         validCustomWords = 30 >= (document.getElementById("plaque-optional-text") as HTMLInputElement).value.length;
         if (!validCustomWords) {
             setValidationErrorMsg("Optional text limited to thirty characters")
+            setValidationError(true)
         }
         return !validCustomWords
     }
@@ -104,7 +112,6 @@ export function InitialFormFields(props: {
         let validationErrorOccurred: boolean;
         try {
             validationErrorOccurred = await res;
-            setValidationError(validationErrorOccurred)
         } catch (error) {
             console.error("Validation failed")
             setValidationErrorMsg("Validation failed due to possible system or network error")
