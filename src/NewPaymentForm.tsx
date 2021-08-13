@@ -2,7 +2,7 @@ import React, { ChangeEvent } from 'react'
 import {SquarePaymentsForm,CreditCardInput,} from 'react-square-web-payments-sdk';
 import {TokenResult} from '@square/web-sdk'
 import {Accordion, AccordionDetails, AccordionSummary,TextField, Dialog, DialogContent, Button} from '@material-ui/core'
-import { ExpandMore } from '@material-ui/icons';
+import { ExpandMore, CheckCircleOutline, ErrorOutline, ErrorRounded , ErrorOutlineSharp} from '@material-ui/icons';
 import {Alert,Color} from '@material-ui/lab';
 import { DialogActions, LinearProgress } from '@material-ui/core';
 
@@ -208,7 +208,8 @@ export class NewPaymentForm extends React.Component<NewPaymentFormProps,NewPayme
                 return(
                 <Dialog open={true}>
                 <DialogContent>
-                    <Alert color={colorstatus}>
+                    <Alert color={colorstatus} severity={colorstatus}
+>
                         {this.state.alertText}
                     </Alert>
                 </DialogContent></Dialog>)
@@ -220,7 +221,14 @@ export class NewPaymentForm extends React.Component<NewPaymentFormProps,NewPayme
                     <br></br>    
                     <Dialog open={this.props.validationError || this.state.pymtStatus !== 'unpaid'}>
                         <DialogContent>
-                            <Alert color={colorstatus}>
+                            <Alert 
+                            color={colorstatus}  
+                            severity={colorstatus}
+                            iconMapping={{
+                                error: <ErrorOutlineSharp fontSize="inherit" />,
+                                success: <CheckCircleOutline fontSize="inherit" />
+                            }}
+                            >
                                 {this.state.alertText}
                             </Alert>
                         </DialogContent>
