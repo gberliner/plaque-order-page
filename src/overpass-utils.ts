@@ -17,8 +17,10 @@ export function fmtAddressQueryResults(results: OverpassJson) {
           addrStreet
         } = (overpassResultSet.elements[k].tags as Tags));
       }
-     address = address.concat(addrStreet??"", addrCity??"")
-      if ("" !== address) {
+      address = addrHousenumber??""
+      address = (address!=="")?address + " ":address;
+      address = address.concat(addrStreet??"", " ", addrCity??"")
+      if ("" !== address && " " !== address) {
         return address;
       }
     }
