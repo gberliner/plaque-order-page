@@ -1,25 +1,27 @@
 import {overpass,OverpassBbox,OverpassElement,OverpassWay,OverpassResponse,OverpassJson} from 'overpass-ts'
+import { Convert, OverpassResultSet,Tags } from "./overpassResultSet";
 
 export function fmtAddressQueryResults(results: OverpassJson) {
     let addrCity;
-    let addrNumber;
+    let addrHousenumber;
     let addrStreet;
-    let address: string;
-    for(let k=0; k<results.elements.length;k++) {
-      let element = results.elements[k];
-      if (element.type !== "way") {
-        continue;
-      } else {
-        addrCity = element?.tags?.hasOwnProperty("addr:city") ? " " + element.tags["addr:city"] : ""
-        addrNumber = element?.tags?.hasOwnProperty("addr:housenumber") ? element.tags["addr:housenumber"] : ""
-        addrStreet = element?.tags?.hasOwnProperty("addr:street") ? " " + element.tags["addr:street"] : ""
-        address = addrNumber
-        address = address.concat(addrStreet, addrCity)
-        if ("" !== address) {
-          return address;
-        }
+    let address: string = "";
+    const overpassResultSet = Convert.toOverpassResultSet(JSON.stringify(results));
+    if (!!overpassResultSet && overpassResultSet !== undefined && overpassResultSet?.elements !== undefined && overpassResultSet?.elements?.length >= 1) {
+
+    for(let k=0; k<overpassResultSet.elements.length;k++) {
+      if (overpassResultSet.elements[k].tags !== undefined) {
+        ({
+          addrCity,
+          addrHousenumber,
+          addrStreet
+        } = (overpassResultSet.elements[k].tags as Tags));
+      }
+     address = address.concat(addrStreet??"", addrCity??"")
+      if ("" !== address) {
+        return address;
       }
     }
     return "";
   }
-  
+}

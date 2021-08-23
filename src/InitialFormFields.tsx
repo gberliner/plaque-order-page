@@ -48,7 +48,7 @@ export function InitialFormFields(props: {
             nwr["addr:housenumber"="${houseNumber}"]["addr:street"~"${streetName}"];
             out body;`, { endpoint: "https://overpass.kumi.systems/api/interpreter" }) as OverpassJson
                 let updatedAddress = fmtAddressQueryResults(res);
-                if (updatedAddress !== "") {
+                if (!!updatedAddress && updatedAddress !== "") {
                     setAddressValidated(true);
                     setAddress(updatedAddress)
                     return false
