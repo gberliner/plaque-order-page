@@ -1,12 +1,11 @@
-import {overpass,OverpassBbox,OverpassElement,OverpassWay,OverpassResponse,OverpassJson} from 'overpass-ts'
 import { Convert, OverpassResultSet,Tags } from "./overpassResultSet";
 
-export function fmtAddressQueryResults(results: OverpassJson) {
+export function fmtAddressQueryResults(results: string) {
     let addrCity;
     let addrHousenumber;
     let addrStreet;
     let address: string = "";
-    const overpassResultSet = Convert.toOverpassResultSet(JSON.stringify(results));
+    const overpassResultSet = Convert.toOverpassResultSet(results);
     if (!!overpassResultSet && overpassResultSet !== undefined && overpassResultSet?.elements !== undefined && overpassResultSet?.elements?.length >= 1) {
 
     for(let k=0; k<overpassResultSet.elements.length;k++) {

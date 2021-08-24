@@ -1,6 +1,5 @@
 import {TextField,Dialog,Button} from '@material-ui/core'
-import {OverpassResponse,OverpassJson,overpass,} from 'overpass-ts'
-import { useState, useEffect, MouseEvent,CSSProperties } from 'react';
+import { useState, useEffect } from 'react';
 import { NewPaymentForm } from './NewPaymentForm';
 import {fmtAddressQueryResults} from './overpass-utils'
 import {LaddaButton,ZOOM_OUT,} from 'react-ladda-button'
@@ -43,10 +42,12 @@ export function InitialFormFields(props: {
           let overpassError = document.getElementById('overpass-error');
           let pymtForm = document.getElementById('plaque-payment-form')
             try {
-                let res = await overpass(
-                    `[out:json][timeout:120][bbox:45.48965204000928,-122.66239643096925,45.50168487047437,-122.63664722442628];
-            nwr["addr:housenumber"="${houseNumber}"]["addr:street"~"${streetName}"];
-            out body;`, { endpoint: process.env.OVERPASS_ENDPOINT }) as OverpassJson
+                let query = `[out:json][timeout:120][bbox:45.48965204000928,-122.66239643096925,45.50168487047437,-122.63664722442628];
+                nwr["addr:housenumber"="${houseNumber}"]["addr:street"~"${streetName}"];
+                out body;`;
+                let encoded_query = encodeURIComponent(query);
+                let res =  await (await fetch(process.env.REACT_APP_OVERPASS_ENDPOINT + "?data=" + encoded_query)).text();
+                
                 let updatedAddress = fmtAddressQueryResults(res);
                 if (!!updatedAddress && updatedAddress !== "") {
                     setAddressValidated(true);

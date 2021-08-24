@@ -1,6 +1,7 @@
 import {MapContainer, TileLayer,Marker,Popup,PopupProps,useMap, useMapEvents} from 'react-leaflet';
 import {LatLng, latLng, LatLngBoundsExpression, LatLngExpression, LatLngTuple, Map, Icon} from 'leaflet'
 import React,{useState} from 'react'
+import {fmtAddressQueryResults} from './overpass-utils'
 import { TextField } from '@material-ui/core';
 // tslint:disable-next-line
 //@ts-ignore
@@ -41,8 +42,10 @@ function SetLocationMarker() {
   async function setAddressFromOverpassQuery (latLng:LatLng,setterFunc: (newstring:string)=>void) {
     try {
       let query =`[out:json];nwr(around:10,${latLng.lat},${latLng.lng});out body;`
-      let results = await overpass(query) as OverpassJson;
-      setterFunc(formatAddressQueryResultsSetHtmlElement(results));                         
+      let urlencoded_query = encodeURIComponent(query);
+      let res = await(await fetch(process.env.REACT_APP_OVERPASS_ENDPOINT + "?data=" + urlencoded_query)).text();
+      //let results = await overpass(query) as OverpassJson;
+      setterFunc(fmtAddressQueryResults(res??"")??"");                         
       console.log("overpass query returned address: " + address);
     } catch (error) {
       console.error(error);
