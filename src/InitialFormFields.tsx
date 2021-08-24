@@ -46,7 +46,7 @@ export function InitialFormFields(props: {
                 let res = await overpass(
                     `[out:json][timeout:120][bbox:45.48965204000928,-122.66239643096925,45.50168487047437,-122.63664722442628];
             nwr["addr:housenumber"="${houseNumber}"]["addr:street"~"${streetName}"];
-            out body;`, { endpoint: "https://overpass.kumi.systems/api/interpreter" }) as OverpassJson
+            out body;`, { endpoint: process.env.OVERPASS_ENDPOINT }) as OverpassJson
                 let updatedAddress = fmtAddressQueryResults(res);
                 if (!!updatedAddress && updatedAddress !== "") {
                     setAddressValidated(true);
