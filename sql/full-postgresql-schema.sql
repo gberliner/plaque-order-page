@@ -1,5 +1,20 @@
 -- Drop table
 
+-- DROP TABLE public.customer;
+
+CREATE TABLE public.customer (
+	id serial NOT NULL,
+	sqid varchar(80) NULL,
+	firstname varchar(80) NULL,
+	email varchar(80) NULL,
+	address varchar(80) NULL,
+	phone varchar(80) NULL,
+	lastname varchar(80) NULL,
+	CONSTRAINT customer_pkey PRIMARY KEY (id)
+);
+
+-- Drop table
+
 -- DROP TABLE public.custorders;
 
 CREATE TABLE public.custorders (
@@ -8,17 +23,20 @@ CREATE TABLE public.custorders (
 	custaddr varchar(80) NULL,
 	grouporderid int4 NULL,
 	id serial NOT NULL,
+	orderdate timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	"year" varchar(4) NULL,
+	paid bool NULL DEFAULT false,
+	completed bool NULL DEFAULT false,
+	status varchar(10) NULL,
+	phone varchar(10) NULL,
+	customwords varchar(30) NULL,
+	custid int4 NULL,
+	oldstate varchar(80) NULL,
+	vendororder varchar(80) NULL,
+	CONSTRAINT custorders_custid_fkey FOREIGN KEY (custid) REFERENCES public.customer(id),
 	CONSTRAINT fk_custorders_groupedorders FOREIGN KEY (grouporderid) REFERENCES public.groupedorders(id)
 );
--- Drop table
 
--- DROP TABLE public.groupedorders;
-
-CREATE TABLE public.groupedorders (
-	id serial NOT NULL,
-	ordergroup _int4 NULL,
-	CONSTRAINT groupedorders_pkey PRIMARY KEY (id)
-);
 
 -- Drop table
 
@@ -30,17 +48,17 @@ CREATE TABLE public.salescatalog (
 	price int4 NULL
 );
 
-CREATE OR REPLACE FUNCTION ordergrouping()
+CREATE OR REPLACE FUNCTION public.ordergrouping()
  RETURNS void
+ LANGUAGE plpgsql
 AS $function$
--- this function assigns groups to unassigned customer orders
 	DECLARE
 		cur_orders CURSOR FOR
 		SELECT * FROM custorders WHERE grouporderid IS null;
 		order_record record;
 		orders_to_process integer;
 		orders_done_processing integer;
-		
+
 		BEGIN
 			SELECT COUNT(*) INTO orders_to_process FROM custorders WHERE grouporderid IS NULL;
 			open cur_orders;
@@ -75,7 +93,7 @@ AS $function$
  									lastgroupidx := 1;
  								 	INSERT INTO groupedorders (id,ordergroup) values(lastgroupidx, array[lastorderidx]);
  								else
- 								 	INSERT INTO groupedorders (ordergroup) values(array[lastorderidx]); 								
+ 								 	INSERT INTO groupedorders (ordergroup) values(array[lastorderidx]);
  								end if;
  							 	update custorders set grouporderid=lastgroupidx where current of cur_orders;
  							END IF;
@@ -94,4 +112,6 @@ AS $function$
 				end;
 			end loop;
 		END
-$function$ LANGUAGE plpgsql;
+$function$
+;
+
