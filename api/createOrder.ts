@@ -97,7 +97,7 @@ export default function createPlaqueOrder(req:Request, res:Response, next:NextFu
                     },
                     autoCompleteDuration: "P4W",
                     scheduleType: "ASAP",
-                    note: "optional text: " + customwords,
+                    note: "year built: " + year + "; " + "optional text: " + customwords,
                     prepTimeDuration: "P4W"
                 }
                 fulfillment = {
