@@ -66,14 +66,13 @@ export function handleOrderFulfillmentUpdate(req: Request, res: Response, next: 
     let catalogUpdateJson = req.body;
     process.env.DEBUG==="true" && console.error("reading fulfillment notification from square endpoint")
     process.env.DEBUG==="true" && console.error(`payload was: ${catalogUpdateJson}`)
-    let catalogUpdateObj = JSONtoCatalogUpdateObj.toCatalogUpdateWebhookPayload(catalogUpdateJson)
-    let {data:{id,object:{orderFulfillmentUpdated:{fulfillmentUpdate:[{oldState,newState}]}}}}=catalogUpdateObj;
-    let sqOrderId = id;
-  
+    let catalogUpdateObj = JSONtoCatalogUpdateObj.toCatalogVersionUpdate(catalogUpdateJson)
+    let {catalogVersion: {updatedAt: catalogUpdateDate}} = catalogUpdateObj;
+    
     (async function () {
       let arrowFunc = async () => {
         try {
-          console.warn(`Refreshing local salescatalog`)
+          console.warn(`Refreshing local salescatalog, updated at ${catalogUpdateDate}`)
           await pool.query(`delete from salescatalog`)
           res.json({"result":"success"})
         } catch (error) {
