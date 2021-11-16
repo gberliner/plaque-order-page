@@ -51,7 +51,7 @@ function isFromSquare(request: Request, sigKey: string, readFromHeaders=false) {
   return retval
 }
 
-export function handleOrderFulfillmentUpdate(req: Request, res: Response, next: NextFunction) {
+export function handleCatalogVersionUpdate(req: Request, res: Response, next: NextFunction) {
   // verify legit request
   //TODO: add this config var!:
   let readHostFromHeaders = true;
@@ -67,6 +67,7 @@ export function handleOrderFulfillmentUpdate(req: Request, res: Response, next: 
     process.env.DEBUG==="true" && console.error("reading fulfillment notification from square endpoint")
     process.env.DEBUG==="true" && console.error(`payload was: ${catalogUpdateJson}`)
     let catalogUpdateObj = JSONtoCatalogUpdateObj.toCatalogVersionUpdate(catalogUpdateJson)
+    
     let {catalogVersion: {updatedAt: catalogUpdateDate}} = catalogUpdateObj;
     
     (async function () {

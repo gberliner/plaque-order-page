@@ -8,11 +8,11 @@
 // match the expected interface, even if the JSON is valid.
 
 export interface CatalogVersionUpdate {
-    catalogVersion?: CatalogVersion;
+    catalogVersion: CatalogVersion;
 }
 
 export interface CatalogVersion {
-    updatedAt?: Date;
+    updatedAt: Date;
 }
 
 // Converts JSON strings to/from your types
@@ -161,9 +161,9 @@ function r(name: string) {
 
 const typeMap: any = {
     "CatalogVersionUpdate": o([
-        { json: "catalog_version", js: "catalogVersion", typ: u(undefined, r("CatalogVersion")) },
+        { json: "catalog_version", js: "catalogVersion", typ: r("CatalogVersion") },
     ], false),
     "CatalogVersion": o([
-        { json: "updated_at", js: "updatedAt", typ: u(undefined, Date) },
+        { json: "updated_at", js: "updatedAt", typ: Date },
     ], false),
 };

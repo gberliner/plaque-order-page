@@ -8,6 +8,7 @@ import {createPlaqueOrder} from './api/createOrder';
 import {checkPrice} from './api/checkPrice';
 import { fileURLToPath } from 'url';
 import { handleOrderFulfillmentUpdate } from './api/orderFulfillmentUpdate';
+import { handleCatalogVersionUpdate } from './api/catalogVersionUpdate';
 //@ts-ignore
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -29,6 +30,7 @@ app.use(function(req,res,next) {
 })
 
 app.post('/api/order-fulfillment-updated', handleOrderFulfillmentUpdate);
+app.post('/api/catalog-version-updated', handleCatalogVersionUpdate);
 app.get('/ping', function (req, res) {
  return res.send('pong');
 });
