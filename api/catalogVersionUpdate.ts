@@ -59,7 +59,7 @@ export function handleCatalogVersionUpdate(req: Request, res: Response, next: Ne
     readHostFromHeaders = true;
   }
 
-  if (!isFromSquare(req, process.env.CATALOGUPDATE_WEBHOOK_SIGKEY as string, readHostFromHeaders)) {
+  if (!isFromSquare(req, process.env.CATALOGUPZ4NM3Up5tJJJ7v5dycbqwgDATE_WEBHOOK_SIGKEY as string, readHostFromHeaders)) {
     console.error("unauthorized request origin, not originating from square!")
     res.json({error: "unauthorized request source"})  
   } else {
@@ -68,12 +68,12 @@ export function handleCatalogVersionUpdate(req: Request, res: Response, next: Ne
     process.env.DEBUG==="true" && console.error(`payload was: ${catalogUpdateJson}`)
     let catalogUpdateObj = JSONtoCatalogUpdateObj.toCatalogVersionUpdate(catalogUpdateJson)
     
-    let {catalogVersion: {updatedAt: catalogUpdateDate}} = catalogUpdateObj;
+    let {data:{object:{catalogVersion:{updatedAt}}}} = catalogUpdateObj;
     
     (async function () {
       let arrowFunc = async () => {
         try {
-          console.warn(`Refreshing local salescatalog, updated at ${catalogUpdateDate}`)
+          console.warn(`Refreshing local salescatalog, updated at ${updatedAt}`)
           await pool.query(`delete from salescatalog`)
           res.json({"result":"success"})
         } catch (error) {

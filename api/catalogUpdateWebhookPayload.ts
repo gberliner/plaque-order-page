@@ -8,6 +8,20 @@
 // match the expected interface, even if the JSON is valid.
 
 export interface CatalogVersionUpdate {
+    merchantID: string;
+    type:       string;
+    eventID:    string;
+    createdAt:  Date;
+    data:       Data;
+}
+
+export interface Data {
+    type:   string;
+    id:     string;
+    object: Object;
+}
+
+export interface Object {
     catalogVersion: CatalogVersion;
 }
 
@@ -161,6 +175,18 @@ function r(name: string) {
 
 const typeMap: any = {
     "CatalogVersionUpdate": o([
+        { json: "merchant_id", js: "merchantID", typ: "" },
+        { json: "type", js: "type", typ: "" },
+        { json: "event_id", js: "eventID", typ: "" },
+        { json: "created_at", js: "createdAt", typ: Date },
+        { json: "data", js: "data", typ: r("Data") },
+    ], false),
+    "Data": o([
+        { json: "type", js: "type", typ: "" },
+        { json: "id", js: "id", typ: "" },
+        { json: "object", js: "object", typ: r("Object") },
+    ], false),
+    "Object": o([
         { json: "catalog_version", js: "catalogVersion", typ: r("CatalogVersion") },
     ], false),
     "CatalogVersion": o([
