@@ -59,7 +59,7 @@ export function handleCatalogVersionUpdate(req: Request, res: Response, next: Ne
     readHostFromHeaders = true;
   }
 
-  if (!isFromSquare(req, process.env.CATALOGUPZ4NM3Up5tJJJ7v5dycbqwgDATE_WEBHOOK_SIGKEY as string, readHostFromHeaders)) {
+  if (!isFromSquare(req, process.env.CATALOGUPDATE_WEBHOOK_SIGKEY as string, readHostFromHeaders)) {
     console.error("unauthorized request origin, not originating from square!")
     res.json({error: "unauthorized request source"})  
   } else {
