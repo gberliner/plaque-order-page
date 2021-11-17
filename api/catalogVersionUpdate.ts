@@ -64,7 +64,7 @@ export function handleCatalogVersionUpdate(req: Request, res: Response, next: Ne
     res.json({error: "unauthorized request source"})  
   } else {
     let catalogUpdateJson = req.body;
-    process.env.DEBUG==="true" && console.error("reading fulfillment notification from square endpoint")
+    process.env.DEBUG==="true" && console.error("reading catalog update notification from square endpoint")
     process.env.DEBUG==="true" && console.error(`payload was: ${catalogUpdateJson}`)
     let catalogUpdateObj = JSONtoCatalogUpdateObj.toCatalogVersionUpdate(catalogUpdateJson)
     
