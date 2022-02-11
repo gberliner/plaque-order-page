@@ -177,7 +177,7 @@ export function InitialFormFields(props: {
                         label="Brief optional text" 
                         variant="filled"
                         inputProps={{
-                            maxLength: 30
+                            maxLength: 28
                         }}
                          >
                          </TextField>
