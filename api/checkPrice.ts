@@ -39,7 +39,7 @@ export default function checkPrice(req: Request, res: Response, next: NextFuncti
                 let sqClient = new Square.Client(
        
                     {
-                        environment: process.env.NODE_ENV === "production"?Square.Environment.Production:Square.Environment.Sandbox,
+                        environment: (process.env.NODE_ENV === "production" && process.env.STAGING !== "true")?Square.Environment.Production:Square.Environment.Sandbox,
                         accessToken: process.env.SQUARE_ACCESS_TOKEN,
                         
                     }
