@@ -31,7 +31,7 @@ app.use(function(req,res,next) {
 
 app.post('/api/order-fulfillment-updated', handleOrderFulfillmentUpdate);
 app.post('/api/catalog-version-updated', handleCatalogVersionUpdate);
-app.get('/ping', function (req, res) {
+app.get('/api/ping', function (req, res) {
  return res.send('pong');
 });
 
