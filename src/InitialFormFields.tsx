@@ -42,7 +42,12 @@ export function InitialFormFields(props: {
           let overpassError = document.getElementById('overpass-error');
           let pymtForm = document.getElementById('plaque-payment-form')
             try {
-                let query = `[out:json][timeout:120][bbox:45.48965204000928,-122.66239643096925,45.50168487047437,-122.63664722442628];
+                //let bbox = process.env.REACT_APP_OSM_BBOX;
+                let bbox = "45.4803,-122.6618,45.5018,-122.6265";
+                if (process.env.REACT_APP_OSM_BBOX !== undefined) {
+                    bbox = process.env.REACT_APP_OSM_BBOX;
+                }
+                let query = `[out:json][timeout:120][bbox:${bbox}];
                 nwr["addr:housenumber"="${houseNumber}"]["addr:street"~"${streetName}"];
                 out body;`;
                 let encoded_query = encodeURIComponent(query);
