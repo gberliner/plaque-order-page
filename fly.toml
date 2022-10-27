@@ -1,4 +1,7 @@
 # fly.toml file generated for plaqueorderpage on 2022-09-05T16:05:37-07:00
+# note that the variables, 
+# CATALOGUPDATE_WEBHOOK_SIGKEY,ORDERUPDATE_WEBHOOK_SIGKEY,SENDGRID_API_KEY,SQUARE_ACCESS_TOKEN 
+# are now set as fly secrets
 
 app = "late-night-2269"
 kill_signal = "SIGINT"
