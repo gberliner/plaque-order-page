@@ -16,14 +16,15 @@ processes = []
   NOTIFICATION_RECIPIENT = "guy.berliner@gmail.com"
   DATABASE_URL = "postgres://postgres:d2d732a4679926fdc09164000a2d46161f425c686c87bbf7@pgtest1.internal:5432"
   NODE_ENV = "production"
+  STAGING = "true"
+  LOCATION_ID  = "L3KY2D4KW2QY1"
 
 [build.args]
-  REACT_APP_APPLICATION_ID = "sandbox-sq0idb-B1MhV8hm4Uz3T7Tul3szcg"
+  REACT_APP_APPLICATION_ID = "sandbox-sq0idb-VzMOEyD4MVY_cF9jZXOogQ"
   REACT_APP_LOCATION_ID  = "L3KY2D4KW2QY1"
   NODE_OPTIONS = "--max_old_space_size=920"
   REACT_APP_OVERPASS_ENDPOINT = "https://dark-snowflake-7733.fly.dev/api/interpreter"
   REACT_APP_OSM_BBOX = "45.4803,-122.6618,45.5018,-122.6265"
-  STAGING = "true"
 
 [experimental]
   allowed_public_ports = []

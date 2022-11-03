@@ -61,7 +61,7 @@ export default function createPlaqueOrder(req:Request, res:Response, next:NextFu
         clientEnvironment = clientEnvironmentSandbox;
     }
     let client = new Square.Client(clientEnvironment);
-
+    console.error(`using token ${process.env.SQUARE_ACCESS_TOKEN}, staging: ${process.env.STAGING}`);
     pgClient.connect();
     pgClient.query(`select ObjectId,price from SalesCatalog where name='${catalogItemName}'`).then(
         async (rset) => {
@@ -82,7 +82,7 @@ export default function createPlaqueOrder(req:Request, res:Response, next:NextFu
                 bodyOrderlineItems0.catalogObjectId = plaqueCatalogId;
                 bodyOrderLineItems[0] = bodyOrderlineItems0;
                 const bodyOrder: Square.Order = {
-                    locationId: (process.env.REACT_APP_LOCATION_ID===undefined?"undefined":process.env.REACT_APP_LOCATION_ID),
+                    locationId: (process.env.LOCATION_ID===undefined?"undefined":process.env.LOCATION_ID),
                 };
                 bodyOrder.lineItems = bodyOrderLineItems
                 
